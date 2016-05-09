@@ -7,5 +7,8 @@
         "psr/log": "^1.0",
         "symfony/dependency-injection": "^3.0",
         "symfony/http-kernel": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {"mondrakeNG\\": "src/"}
     }
 }
