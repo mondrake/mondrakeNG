@@ -36,12 +36,26 @@ class DbConnection {
   }
 
   /**
+   * Gets the db connection
+   *
+   * @return @todo
+   */
+  static public function getDbConnection($name) {
+    if (isset(static::$connections[$name])) {
+      return static::$connections[$name]['connection'];
+    }
+    else {
+      throw new \Exception("Db connection {$name} not found");
+    }
+  }
+
+  /**
    * Gets the DBAL driver name
    *
    * @return string DBAL driver name
    */
   static public function getDBALDriver($name) {
-    return static::$connections[$name]['connection']->getDriver()->getName();
+    return static::getDbConnection($name)->getDriver()->getName();
   }
 
   /**
@@ -50,7 +64,7 @@ class DbConnection {
    * @return string database server name
    */
   static public function getDbServerName($name) {
-    return static::$connections[$name]['connection']->getDriver()->getDatabasePlatform()->getName();
+    return static::getDbConnection($name)->getDriver()->getDatabasePlatform()->getName();
   }
 
   /**
@@ -59,7 +73,7 @@ class DbConnection {
    * @return string database server version string
    */
   static public function getDbServerVersion($name) {
-    return static::$connections[$name]['connection']->getWrappedConnection()->getAttribute(\PDO::ATTR_SERVER_VERSION); // @todo if not PDO??
+    return static::getDbConnection($name)->getWrappedConnection()->getAttribute(\PDO::ATTR_SERVER_VERSION); // @todo if not PDO??
   }
 
   /**
@@ -68,8 +82,9 @@ class DbConnection {
    * @return array array with all the db tables
    */
   static public function fetchAllTables($name) {
-    $tables = static::$connections[$name]['connection']->query(static::$connections[$name]['dbms']->getListTablesSQL());
-    return static::$connections[$name]['dbms']->listTables($tables);
+    $db_connection = static::getDbConnection($name);
+    $tables = $db_connection->query(static::$connections[$name]['dbms']->getAllTablesSQL());
+    return static::$connections[$name]['dbms']->mapTables($tables);
   }
 
   /**
@@ -79,59 +94,12 @@ class DbConnection {
    *
    * @return void
    */
-  static public function fetchAllColumnsProperties($name, $tableName, $dbolE) {
+  static public function fetchAllColumnsProperties($name, $table_name, $dbolE) {
+    $db_connection = static::getDbConnection($name);
     // stores the lists of table columns & types, and
     // an array with full details by column name
-    $tableColumns = static::$connections[$name]['connection']->query(static::$connections[$name]['connection']->getDatabasePlatform()->getListTableColumnsSQL($tableName))->fetchAll();
-    $res = static::$connections[$name]['dbms']->tableInfo($tableName, $tableColumns);
-    $j = 0;
-    foreach ($res as $a => $b) {
-      $dbolE->columns[] = $b['name'];
-      $dbolE->columnTypes[$b['name']] = $b['dboltype'];
-
-      $colDets = array();
-      // set seq property
-      $colDets['seq'] = $j;
-      // set type property
-      $colDets['type'] = $b['dboltype'];
-      // set nullable property
-      $colDets['nullable'] = $b['nullable'];
-      // set length/decimal property
-      if (strstr($b['length'], ',')) {
-        list($colDets['length'], $colDets['decimal']) = explode(",", $b['length']);
-      }
-      else {
-        $colDets['length'] = $b['length'];
-      }
-      // set default property
-      $colDets['default'] = $b['default'];
-      // set Autoincrement properties
-      if ($b['autoincrement'] == 1) {
-        $dbolE->AIColumns[] = $b['name'];
-        $colDets['autoIncrement'] = true;
-        $colDets['editable'] = false;
-      } else {
-        $colDets['autoIncrement'] = false;
-        $colDets['editable'] = true;
-      }
-      // set Primary Key properties
-      if ($b['primaryKey']) {
-        $dbolE->PKColumns[] = $b['name'];
-        $colDets['primaryKey'] = true;
-      } else {
-        $colDets['primaryKey'] = false;
-      }
-      // set Comment
-      if (isset($b['comment'])) {
-        $colDets['comment'] = $b['comment'];
-      }
-      // set audit property
-      if ($dbolE->tableProperties['auditLogLevel'] > Dbol::DBOL_ROW_AUDIT) {
-        $colDets['auditLog'] = true;
-      }
-      $dbolE->columnProperties[$b['name']] = $colDets;
-      $j++;
-    }
+    $table_columns = $db_connection->query($db_connection->getDatabasePlatform()->getListTableColumnsSQL($table_name))->fetchAll();
+    return static::$connections[$name]['dbms']->mapTableColumns($table_name, $table_columns, $dbolE);
   }
 
 }

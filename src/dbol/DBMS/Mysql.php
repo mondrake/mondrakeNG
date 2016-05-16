@@ -2,9 +2,11 @@
 
 namespace mondrakeNG\dbol\DBMS;
 
+use mondrakeNG\dbol\Dbol;
+
 class Mysql {
 
-  public function getListTablesSQL() {
+  public function getAllTablesSQL() {
     return "SHOW TABLE STATUS";
   }
 
@@ -22,7 +24,7 @@ class Mysql {
    *
    * @return array the list of tables
    */
-  public function listTables($res, $prefix = NULL) {
+  public function mapTables($res, $prefix = NULL) {
     $tables = array();
     foreach ($res as $a => $b) {
       $comment = $b['Comment'];
@@ -63,7 +65,7 @@ class Mysql {
    *
    * @return array the column details
    */
-  public function tableInfo($tableName, $tableColumns) {
+  public function mapTableColumns($tableName, $tableColumns, $dbolE) {
     $ret = array();
     for ($i = 0; $i < count($tableColumns) ; $i++)    {
       $col = $tableColumns[$i];
@@ -92,6 +94,58 @@ var_export($this->$a);
 echo('<br/>');
 var_export($b);*/
     }
+
+    $j = 0;
+    foreach ($ret as $a => $b) {
+      $dbolE->columns[] = $b['name'];
+      $dbolE->columnTypes[$b['name']] = $b['dboltype'];
+
+      $colDets = array();
+      // set seq property
+      $colDets['seq'] = $j;
+      // set type property
+      $colDets['type'] = $b['dboltype'];
+      // set nullable property
+      $colDets['nullable'] = $b['nullable'];
+      // set length/decimal property
+      if (strstr($b['length'], ',')) {
+        list($colDets['length'], $colDets['decimal']) = explode(",", $b['length']);
+      }
+      else {
+        $colDets['length'] = $b['length'];
+      }
+      // set default property
+      $colDets['default'] = $b['default'];
+      // set Autoincrement properties
+      if ($b['autoincrement'] == 1) {
+        $dbolE->AIColumns[] = $b['name'];
+        $colDets['autoIncrement'] = true;
+        $colDets['editable'] = false;
+      } else {
+        $colDets['autoIncrement'] = false;
+        $colDets['editable'] = true;
+      }
+      // set Primary Key properties
+      if ($b['primaryKey']) {
+        $dbolE->PKColumns[] = $b['name'];
+        $colDets['primaryKey'] = true;
+      } else {
+        $colDets['primaryKey'] = false;
+      }
+      // set Comment
+      if (isset($b['comment'])) {
+        $colDets['comment'] = $b['comment'];
+      }
+      // set audit property
+      if ($dbolE->tableProperties['auditLogLevel'] > Dbol::DBOL_ROW_AUDIT) {
+        $colDets['auditLog'] = true;
+      }
+      $dbolE->columnProperties[$b['name']] = $colDets;
+      $j++;
+    }
+
+
+
     return $ret;
   }
 
