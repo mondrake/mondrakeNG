@@ -6,14 +6,14 @@ use mondrakeNG\dbol\DbConnection;
 use mondrakeNG\dbol\Dbol;
 use mondrakeNG\dbol\DbolEntry;
 
-define('MMOBJ_DEBUG',    7);
-define('MMOBJ_INFO',     6);
-define('MMOBJ_NOTICE',   5);
-define('MMOBJ_OK',       5);
-define('MMOBJ_WARNING',  4);
-define('MMOBJ_ERROR',    3);
-
 abstract class MMObj {
+  const MMOBJ_DEBUG = 7;
+  const MMOBJ_INFO = 6;
+  const MMOBJ_NOTICE = 5;
+  const MMOBJ_OK = 5;
+  const MMOBJ_WARNING = 4;
+  const MMOBJ_ERROR = 3;
+
     protected static $dbol = null;
     protected static $dbObj = array();
     protected static $childObjs = array();
@@ -58,7 +58,7 @@ abstract class MMObj {
             $sqlq = "SELECT * FROM #pfx#mm_classes where mm_class_name = '$xxx'";
             $res = self::$dbol->query($sqlq, $limit = NULL, $offset = NULL, $sqlId = NULL, $skipPerfLog = TRUE);
             if (count($res) == 0)    {
-                $this->diagLog(MMOBJ_ERROR, 100, array('#text' => "Class $this->className not found in repository.",), 'MMObj', TRUE);
+                $this->diagLog(static::MMOBJ_ERROR, 100, array('#text' => "Class $this->className not found in repository.",), 'MMObj', TRUE);
             }
             self::$dbObj[$this->className]->table = $res[0]['db_table_name'];
             self::$dbObj[$this->className]->tableProperties['auditLogLevel'] = $res[0]['db_table_audit_log_level'];
@@ -223,7 +223,7 @@ abstract class MMObj {
         $clientPKMap = func_get_args(0);
         $sessionContext = self::$dbol->getVariable();
         if (empty($sessionContext['user'])) {
-            $this->diagLog(MMOBJ_ERROR, 999, array('#text' => 'Session context not set. Table: %table',
+            $this->diagLog(static::MMOBJ_ERROR, 999, array('#text' => 'Session context not set. Table: %table',
                                                        '%table' => self::$dbObj[$this->className]->table,));
         }
 
@@ -239,7 +239,7 @@ abstract class MMObj {
             }
         }
 
-        if ($this->validate() < MMOBJ_WARNING)    {
+        if ($this->validate() < static::MMOBJ_WARNING)    {
             $table = $this->getDbObj()->table;
 //            throw new \Exception("Validation error on create - Table: $table - PK: $this->primaryKeyString");
             throw new \Exception(var_export($this,true));
@@ -280,12 +280,12 @@ abstract class MMObj {
     public function update() {
         $sessionContext = self::$dbol->getVariable();
         if (empty($sessionContext['user'])) {
-            $this->diagLog(MMOBJ_ERROR, 999, array('#text' => 'Session context not set. Table: %table',
+            $this->diagLog(static::MMOBJ_ERROR, 999, array('#text' => 'Session context not set. Table: %table',
                                                        '%table' => self::$dbObj[$this->className]->table,));
         }
 
 //        try    {
-            if ($this->validate() < MMOBJ_WARNING) {
+            if ($this->validate() < static::MMOBJ_WARNING) {
                 $table = $this->getDbObj()->table;
                 throw new \Exception("Validation error on update - Table: $table - PK: $this->primaryKeyString");
             }
@@ -299,7 +299,7 @@ abstract class MMObj {
     public function delete($clientPKMap = false) {
         $sessionContext = self::$dbol->getVariable();
         if (empty($sessionContext['user'])) {
-            $this->diagLog(MMOBJ_ERROR, 999, array('#text' => 'Session context not set. Table: %table',
+            $this->diagLog(static::MMOBJ_ERROR, 999, array('#text' => 'Session context not set. Table: %table',
                                                        '%table' => self::$dbObj[$this->className]->table,));
         }
         // delete children objects
@@ -386,7 +386,7 @@ abstract class MMObj {
 
     protected function validate() {
         $colDets = $this->getColumnProperties();
-        $highErr = MMOBJ_DEBUG;
+        $highErr = static::MMOBJ_DEBUG;
         foreach ($colDets as $a => $b)    {
             if (empty($this->$a) && $b['nullable'])    {
                 continue;
@@ -400,8 +400,8 @@ abstract class MMObj {
                             break;
                         }
                         else if (!is_numeric($this->$a))    {
-                            $highErr = MMOBJ_ERROR;
-                            $this->diagLog(MMOBJ_ERROR, 100, array( '#text' => 'The field %fieldName must be numeric.',
+                            $highErr = static::MMOBJ_ERROR;
+                            $this->diagLog(static::MMOBJ_ERROR, 100, array( '#text' => 'The field %fieldName must be numeric.',
                                                     '%fieldName' => $a));
                             break;
                         }
@@ -412,8 +412,8 @@ abstract class MMObj {
                             $this->$a = empty($this->$a) ? 0 : $this->$a;
                         }
                         if (!($this->$a >= -1 and $this->$a <= 1))    {
-                            $highErr = MMOBJ_ERROR;
-                            $this->diagLog(MMOBJ_ERROR, 101, array( '#text' => 'The field %fieldName must be boolean. Val %val',
+                            $highErr = static::MMOBJ_ERROR;
+                            $this->diagLog(static::MMOBJ_ERROR, 101, array( '#text' => 'The field %fieldName must be boolean. Val %val',
                                                     '%val' => $this->$a,
                                                     '%fieldName' => $a));
                         }
@@ -427,21 +427,21 @@ abstract class MMObj {
                                     break;
                                 }
                         }
-                        $highErr = MMOBJ_ERROR;
-                        $this->diagLog(MMOBJ_ERROR, 102, array( '#text' => 'The field %fieldName must be a date.',
+                        $highErr = static::MMOBJ_ERROR;
+                        $this->diagLog(static::MMOBJ_ERROR, 102, array( '#text' => 'The field %fieldName must be a date.',
                                                 '%fieldName' => $a));
                         break;
                     case 'time':
                         if (!strtotime($this->$a))    {
-                            $highErr = MMOBJ_ERROR;
-                            $this->diagLog(MMOBJ_ERROR, 103, array( '#text' => 'The field %fieldName must be a time.',
+                            $highErr = static::MMOBJ_ERROR;
+                            $this->diagLog(static::MMOBJ_ERROR, 103, array( '#text' => 'The field %fieldName must be a time.',
                                                     '%fieldName' => $a));
                         }
                         break;
                     case 'timestamp':
                         if (!strtotime($this->$a))    {
-                            $highErr = MMOBJ_ERROR;
-                            $this->diagLog(MMOBJ_ERROR, 104, array( '#text' => 'The field %fieldName must be a timestamp.',
+                            $highErr = static::MMOBJ_ERROR;
+                            $this->diagLog(static::MMOBJ_ERROR, 104, array( '#text' => 'The field %fieldName must be a timestamp.',
                                                     '%fieldName' => $a));
                         }
                         break;
@@ -458,7 +458,7 @@ abstract class MMObj {
             $className = get_class($this);
         }
         $this->diag->sLog($severity, $className, $id, $params);
-        if ($severity == MMOBJ_ERROR)    {
+        if ($severity == static::MMOBJ_ERROR)    {
             // prepares msg for exception
             $msg = $params['#text'];
             //foreach ($this->diag->get(FALSE) as $a)    {
@@ -467,7 +467,7 @@ abstract class MMObj {
             // logs backtrace
             //if ($link->backtrace)    {
             //    foreach ($link->backtrace as $a => $b)    {
-            //        $this->diag->sLog(MMOBJ_ERROR, 'backtrace', 0, array('#text' => $a . ' ' . $b['class'] . '/' . $b['function'] . ' in ' . $b['file'] . ' line ' . $b['line'],));
+            //        $this->diag->sLog(static::MMOBJ_ERROR, 'backtrace', 0, array('#text' => $a . ' ' . $b['class'] . '/' . $b['function'] . ' in ' . $b['file'] . ' line ' . $b['line'],));
             //    }
             //}
             if ($throwExceptionOnError)    {

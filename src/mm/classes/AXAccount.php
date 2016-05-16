@@ -7,7 +7,7 @@ use mondrakeNG\mm\core\MMUtils;
 use mondrakeNG\rbppavl\RbppavlTraverser;
 use mondrakeNG\rbppavl\RbppavlTree;
 
-class AXAccount extends MMObj 
+class AXAccount extends MMObj
 {
     public $env = null;
     public $pts = null;
@@ -32,7 +32,7 @@ class AXAccount extends MMObj
                 ),
             );
         }
-    }  
+    }
 
     public function accountCtlInit(){
         $this->accountCtl->environment_id = $this->environment_id;
@@ -54,18 +54,18 @@ class AXAccount extends MMObj
         }
         return $ret;
     }
-    
+
     private function _resolveStartEndDates($dtFrom, $dtTo, $pt = null) {
         // the full range of dates for the day summary table starts from the first day of the period
         // where dtFrom is in, to the last day the period resulting by offsetting the period dtTo is
         // in to the number of futurePeriods
-        
+
         if (!$pt) {
             $pts = $this->pts;
         } else {
             $pts = array($pt);
         }
-        
+
         $dtStart = null;
         $dtEnd = null;
         foreach ($pts as $pt) {
@@ -73,19 +73,19 @@ class AXAccount extends MMObj
             $dateStart = new AMPeriodDate($pt->periodTypeId, $dtFrom);
             $r = $dateStart->read();
             if (!$r) {
-                $this->diagLog(MMOBJ_ERROR, 99, array( '#text' => 'Date %fromDate not found in calendar.', 
+                $this->diagLog(MMObj::MMOBJ_ERROR, 99, array( '#text' => 'Date %fromDate not found in calendar.',
                                 '%fromDate' => $dtFrom,));
                 return null;
             }
             if (!$dtStart or $dtStart > $dateStart->datePeriod->first_period_date) {
                 $dtStart = $dateStart->datePeriod->first_period_date;
             }
-            
+
             // end date
             $dateEnd = new AMPeriodDate($pt->periodTypeId, $dtTo);
             $r = $dateEnd->read();
             if (!$r) {
-                $this->diagLog(MMOBJ_ERROR, 99, array( '#text' => 'Date %toDate not found in calendar.', 
+                $this->diagLog(MMObj::MMOBJ_ERROR, 99, array( '#text' => 'Date %toDate not found in calendar.',
                                 '%toDate' => $dtTo,));
                 return null;
             }
@@ -94,17 +94,17 @@ class AXAccount extends MMObj
                 $dtEnd = $dtTemp;
             }
         }
-        //$this->diagLog(MMOBJ_DEBUG, 99, array( '#text' => "$dtStart - $dtEnd",));
+        //$this->diagLog(MMObj::MMOBJ_DEBUG, 99, array( '#text' => "$dtStart - $dtEnd",));
         return array($dtStart, $dtEnd);
-    }    
-    
+    }
+
     private function _getDaySummaryTable($dtFrom, &$dtTo, &$isComplete, $debugMode = false) {
         // gets widest date range
         list($dtStart, $dtEnd) = $this->_resolveStartEndDates($dtFrom, $dtTo);
-        
+
         $docType = new AMDocType;
         $docItemType = new AMDocItemType;
-        
+
         // gets query handle to the day summary table
         $params = array(
             "#dtFrom#" => $dtStart,
@@ -115,10 +115,10 @@ class AXAccount extends MMObj
         $sqlStmt = MMUtils::retrieveSqlStatement($sqlId, $params);
         $qh = self::$dbol->getQueryHandle($sqlStmt, $sqlId);
 
-        // instantiate day summary table 
+        // instantiate day summary table
         $tree = new RbppavlTree(MM_CLASS_PATH . "AXDaySummaryTable", 3, false, "5M");
 
-        // by item, allocates amounts to day summary table 
+        // by item, allocates amounts to day summary table
         while ($a = self::$dbol->fetchRow($qh)) {
             $item = new AXDaySummaryEntry;
             $item->date = $a['doc_item_date'];
@@ -130,14 +130,14 @@ class AXAccount extends MMObj
                     $dtTo = MMUtils::dateOffset($a['doc_item_date'], -1);   // $dtTo set to last safe date
                     return $tree;                                           // returns tree for partial processing
                 }
-                // else is OK, and $item is a new insert   
+                // else is OK, and $item is a new insert
                 $tItem = $item;
             }
             // balance opening document
             if ($docType->isBalanceOpening($a['doc_type_id'])) {
                 $tItem->actualOp += $a['doc_item_account_currency_amount'];
                 continue;
-            }    
+            }
             // budget document
             if ($docType->isBudget($a['doc_type_id'])) {
                 if ($docItemType->isCredit($a['doc_item_type'])) {
@@ -145,9 +145,9 @@ class AXAccount extends MMObj
                 } else {
                     $tItem->budgetDt += $a['doc_item_account_currency_amount'];
                 }
-                $tItem->budgetBal = $tItem->budgetDt + $tItem->budgetCt; 
+                $tItem->budgetBal = $tItem->budgetDt + $tItem->budgetCt;
                 continue;
-            }    
+            }
             // actual document
             if (!$a['is_doc_item_validated']) {
                 if ($docItemType->isCredit($a['doc_item_type'])) {
@@ -162,8 +162,8 @@ class AXAccount extends MMObj
                     $tItem->actualDt += $a['doc_item_account_currency_amount'];
                 }
             }
-            $tItem->actualBal = $tItem->actualDt + $tItem->actualCt; 
-            $tItem->unvalBal = $tItem->unvalDt + $tItem->unvalCt; 
+            $tItem->actualBal = $tItem->actualDt + $tItem->actualCt;
+            $tItem->unvalBal = $tItem->unvalDt + $tItem->unvalCt;
         }
 
         if ($tree->getCount() and $debugMode) {
@@ -173,7 +173,7 @@ class AXAccount extends MMObj
         return $tree;
     }
 
-    private function _dumpDaySummaryTable($tree) 
+    private function _dumpDaySummaryTable($tree)
     {
         echo '<table class="signup" border="1" cellpadding="2" cellspacing="0" bgcolor="#eeeeee">';
         $trav = new RbppavlTraverser($tree);
@@ -184,7 +184,7 @@ class AXAccount extends MMObj
                 foreach ($el as $a => $msg)    {
                     echo "<td>$a</td>";
                 }
-                echo "</tr>";    
+                echo "</tr>";
                 $thSet = true;
             }
             echo "<tr>";
@@ -192,28 +192,28 @@ class AXAccount extends MMObj
                 $x = str_replace(".", ",", $msg);
                 echo "<td align=right>$x</td>";
             }
-            echo "</tr>";    
+            echo "</tr>";
             $el = $trav->next();
         }
         echo '</table>';
     }
 
     /*
-     * -------- NEW  
+     * -------- NEW
      */
     public function updateBalance($environment, $dtFrom, $dtNeedle, $futurePeriods, $debugMode = false)
     {
         // starts time watching of the balance update
         $this->startWatch(1);
         // checks input parameters
-        if (is_null($dtFrom) or $dtFrom < $this->valid_from) { 
+        if (is_null($dtFrom) or $dtFrom < $this->valid_from) {
             $dtFrom = $this->valid_from;
         }
-        if ($this->valid_to and $dtNeedle > $this->valid_to) { 
+        if ($this->valid_to and $dtNeedle > $this->valid_to) {
             $dtNeedle = $this->valid_to;
         }
         if (!$dtNeedle) {
-            $this->diagLog(MMOBJ_ERROR, 99, array( '#text' => 'Needle date is null.',));
+            $this->diagLog(MMObj::MMOBJ_ERROR, 99, array( '#text' => 'Needle date is null.',));
             return null;
         }
         // initialise class variables
@@ -238,7 +238,7 @@ class AXAccount extends MMObj
             $sqlId = "listDates";
             $sqlStmt = MMUtils::retrieveSqlStatement($sqlId, $params);
             $qh = self::$dbol->getQueryHandle($sqlStmt, $sqlId);
-            
+
             // initialise period iteration
             $a = self::$dbol->fetchRow($qh);
             $dtI = $a['period_date'];
@@ -253,22 +253,22 @@ class AXAccount extends MMObj
                 $dateStart = new AMPeriodDate($pt->periodTypeId, $dtFrom);
                 $r = $dateStart->read();
                 if (!$r) {
-                    $this->diagLog(MMOBJ_ERROR, 99, array( '#text' => 'Date %fromDate not found in AMPeriodDates.', 
+                    $this->diagLog(MMObj::MMOBJ_ERROR, 99, array( '#text' => 'Date %fromDate not found in AMPeriodDates.',
                                     '%fromDate' => $dtFrom,));
                     return null;
                 }
-                $prevPer = $dateStart->datePeriod->getOffsetPeriod(-1);  
+                $prevPer = $dateStart->datePeriod->getOffsetPeriod(-1);
                 // fetches data from prev period if existing
                 if ($prevPer) {
                     $prevBal = new AXAccountPeriodBalance;
                     $r = $prevBal->read(
-                            $this->environment_id, 'ACC', $this->account_id, $pt->periodTypeId, 
+                            $this->environment_id, 'ACC', $this->account_id, $pt->periodTypeId,
                             $prevPer->period_year, $prevPer->period
                         );
                     if ($r) {
                         $pxP->actualRunBal = $prevBal->period_closing_balance;
                         $pxP->unvalRunBal = $prevBal->period_uv_closing_balance;
-                    } 
+                    }
                 }
             }
             $pxI = clone $pxP;
@@ -330,7 +330,7 @@ class AXAccount extends MMObj
                         $px->actualDays++;
                         $px->actualSumBal += $px->actualRunBal;
                         // flushes day to db
-                        if ($dtI >= $dtFrom) {      
+                        if ($dtI >= $dtFrom) {
                             $fd = $this->_flushDaySummary($tItem, $px);
                             if ($fd) {
                                 $isAccBalUpdated = true;
@@ -340,21 +340,21 @@ class AXAccount extends MMObj
                     // move to next day
                     $a = self::$dbol->fetchRow($qh);
                     if (!$a) {
-                        break; 
+                        break;
                     }
                     $dtI = $a['period_date'];
                     $pxI->periodTypeId = $a['period_type_id'];
                     $pxI->periodYear = $a['period_year'];
                     $pxI->period = $a['period'];
                     $pxI->periodSequence = $a['period_seq'];
-                } 
-                
+                }
+
                 // flushes period to db
                 $fd = $this->_flushPeriodSummary($px, $pxP);
                 if ($fd) {
                     $isAccBalUpdated = true;
                 }
-                
+
                 // moves to next period
                 if ($this->accountClass->account_class_type == 'F')    {
                     if ($dtI <= $dtNeedle) {
@@ -365,17 +365,17 @@ class AXAccount extends MMObj
                         $pxI->unvalRunBal  = 0;
                     }
                 }
-                $pxP = clone $pxI; 
+                $pxP = clone $pxI;
             }
         }
-        
+
         if ($isAccBalUpdated) {
-            $this->diagLog(MMOBJ_NOTICE, 99, array( '#text' => 'Account balance updated - %accountShort (%accountDesc)', 
+            $this->diagLog(MMObj::MMOBJ_NOTICE, 99, array( '#text' => 'Account balance updated - %accountShort (%accountDesc)',
                             '%accountShort' => $this->account_short,
                             '%accountDesc' => $this->account_desc,
                             '#elapsed' => 1));
          }
-        return null;                    
+        return null;
     }
 
     private function _flushDaySummary($dx, $px) {
@@ -405,7 +405,7 @@ echo <<<_END
 
 <table class="signup" border="1" cellpadding="2"
     cellspacing="0" bgcolor="#eeeeee">
-    
+
 _END;
 }*/
 
@@ -414,9 +414,9 @@ _END;
         $colDets = $db->getColumnProperties();
         echo "<tr>";
         foreach ($colDets as $b => $msg)    {
-            echo "<td>$b</td>"; 
+            echo "<td>$b</td>";
         }
-        echo "</tr>";    
+        echo "</tr>";
         $thSet = true;
     }
     echo "<tr>";
@@ -424,13 +424,13 @@ _END;
         $x = str_replace(".", ",", $db->$b);
         echo "<td align=right>$x</td>";
     }
-    echo "</tr>";    
+    echo "</tr>";
 }*/
         // flushes to db
         if ($r) {
             $s = $db->update();
             if ($s) {
-                $this->diagLog(MMOBJ_DEBUG, 99, array( '#text' => 'Daily Upd %accountShort - %accountDesc; %periodTypeId|%accountId|%day.', 
+                $this->diagLog(MMObj::MMOBJ_DEBUG, 99, array( '#text' => 'Daily Upd %accountShort - %accountDesc; %periodTypeId|%accountId|%day.',
                                     '%accountShort' => $this->account_short,
                                     '%accountDesc' => $this->account_desc,
                                     '%periodTypeId' => $px->periodTypeId,
@@ -441,7 +441,7 @@ _END;
         } else {
             $s = $db->create();
             if ($s) {
-                $this->diagLog(MMOBJ_DEBUG, 99, array( '#text' => 'Daily Ins %accountShort - %accountDesc; %periodTypeId|%accountId|%day.', 
+                $this->diagLog(MMObj::MMOBJ_DEBUG, 99, array( '#text' => 'Daily Ins %accountShort - %accountDesc; %periodTypeId|%accountId|%day.',
                                     '%accountShort' => $this->account_short,
                                     '%accountDesc' => $this->account_desc,
                                     '%periodTypeId' => $px->periodTypeId,
@@ -457,7 +457,7 @@ _END;
         // period break in day iteration, prepare for period balance update
         $pb = new AXAccountPeriodBalance;
         $r = $pb->read(
-                $this->environment_id, 'ACC', $this->account_id, $px->periodTypeId, 
+                $this->environment_id, 'ACC', $this->account_id, $px->periodTypeId,
                 $px->periodYear, $px->period
             );
         // apply period progressives
@@ -489,19 +489,19 @@ _END;
         if ($r) {
             $s = $pb->update();
             if ($s) {
-                $this->diagLog(MMOBJ_DEBUG, 99, array( '#text' => 'Period Upd %accountShort - %accountDesc; %periodTypeId|%accountId|%year|%period.', 
+                $this->diagLog(MMObj::MMOBJ_DEBUG, 99, array( '#text' => 'Period Upd %accountShort - %accountDesc; %periodTypeId|%accountId|%year|%period.',
                                     '%accountShort' => $this->account_short,
                                     '%accountDesc' => $this->account_desc,
                                     '%periodTypeId' => $px->periodTypeId,
                                     '%accountId' => $this->account_id,
                                     '%year' => $px->periodYear,
-                                    '%period' => $px->period,)); 
+                                    '%period' => $px->period,));
                 return true;
             }
         } else {
             $s = $pb->create();
             if ($s) {
-                $this->diagLog(MMOBJ_DEBUG, 99, array( '#text' => 'Period Ins %accountShort - %accountDesc; %periodTypeId|%accountId|%year|%period.', 
+                $this->diagLog(MMObj::MMOBJ_DEBUG, 99, array( '#text' => 'Period Ins %accountShort - %accountDesc; %periodTypeId|%accountId|%year|%period.',
                                     '%accountShort' => $this->account_short,
                                     '%accountDesc' => $this->account_desc,
                                     '%periodTypeId' => $px->periodTypeId,

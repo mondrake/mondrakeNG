@@ -126,7 +126,7 @@ class DbConnection {
         $colDets['comment'] = $b['comment'];
       }
       // set audit property
-      if ($dbolE->tableProperties['auditLogLevel'] > DBOL_ROW_AUDIT) {
+      if ($dbolE->tableProperties['auditLogLevel'] > Dbol::DBOL_ROW_AUDIT) {
         $colDets['auditLog'] = true;
       }
       $dbolE->columnProperties[$b['name']] = $colDets;

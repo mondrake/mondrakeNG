@@ -14,23 +14,6 @@
 namespace mondrakeNG\dbol;
 
 /**
- *
- */
-define('DBOL_NO_AUDIT',                 0);
-define('DBOL_ROW_AUDIT',                1);
-define('DBOL_FIELD_AUDIT',              2);
-define('DBOL_NO_SELECT_LOCK',           0);
-define('DBOL_SELECT_LOCK_SHARED',       1);
-define('DBOL_SELECT_LOCK_FOR_UPDATE',   2);
-define('DBOL_DEBUG',                    7);
-define('DBOL_INFO',                     6);
-define('DBOL_NOTICE',                   5);
-define('DBOL_WARNING',                  4);
-define('DBOL_ERROR',                    3);
-define('DBOL_DEFAULT_PKSEPARATOR',         '|');
-define('DBOL_DEFAULT_PKSEPARATORREPLACE',  '#&!vbar!&#');
-
-/**
  * Dbol
  *
  * @category Database
@@ -40,6 +23,17 @@ define('DBOL_DEFAULT_PKSEPARATORREPLACE',  '#&!vbar!&#');
  * @link     http://github.com/mondrake/Dbol
  */
 class Dbol {
+  const DBOL_NO_AUDIT = 0;
+  const DBOL_ROW_AUDIT = 1;
+  const DBOL_FIELD_AUDIT = 2;
+  const DBOL_DEBUG = 7;
+  const DBOL_INFO = 6;
+  const DBOL_NOTICE = 5;
+  const DBOL_WARNING = 4;
+  const DBOL_ERROR = 3;
+  const DBOL_DEFAULT_PKSEPARATOR = '|';
+  const DBOL_DEFAULT_PKSEPARATORREPLACE = '#&!vbar!&#';
+
   protected $_variables = array();          // session context variables
   protected $_cbc = null;                        // callback interface instance
   protected $dbConnection = null;
@@ -61,9 +55,9 @@ class Dbol {
    *                                if not passed, instantiated callback object can be passed later via
    *                                function 'setCallback'
    *     'decimalPrecision'   =>    default precision of decimal fields (can be overridden by single columns)
-   *     'PKSeparator'        =>    separator to use to build a primaryKeyString (default = DBOL_DEFAULT_PKSEPARATOR)
+   *     'PKSeparator'        =>    separator to use to build a primaryKeyString (default = static::DBOL_DEFAULT_PKSEPARATOR)
    *     'PKSeparatorReplace' =>    string used to replace occurrences of 'PKSeparator' in text of PK columns values
-   *                                (default = DBOL_DEFAULT_PKSEPARATORREPLACE)
+   *                                (default = static::DBOL_DEFAULT_PKSEPARATORREPLACE)
    *     'perfLogging'        =>    bool to specify if SQL performance should be tracked
    *     'perfThreshold'      =>    threshold in milliseconds above which underperforming SQL statements are tracked
    *
@@ -81,11 +75,11 @@ class Dbol {
     }
     // sets default PK separator
     if (!isset($this->_variables['PKSeparator'])) {
-      $this->_variables['PKSeparator'] = DBOL_DEFAULT_PKSEPARATOR;
+      $this->_variables['PKSeparator'] = static::DBOL_DEFAULT_PKSEPARATOR;
     }
     // sets default PK separator replace
     if (!isset($this->_variables['PKSeparatorReplace'])) {
-      $this->_variables['PKSeparatorReplace'] = DBOL_DEFAULT_PKSEPARATORREPLACE;
+      $this->_variables['PKSeparatorReplace'] = static::DBOL_DEFAULT_PKSEPARATORREPLACE;
     }
   }
 
@@ -684,7 +678,7 @@ class Dbol {
     }
 
     // generates an audit log if needed
-    if ($dbolE->tableProperties['auditLogLevel'] > DBOL_NO_AUDIT) {
+    if ($dbolE->tableProperties['auditLogLevel'] > static::DBOL_NO_AUDIT) {
       $auditLogId = $this->_cbc->logRowAudit($obj, $dbolE, 'I', $iSeq);
     }
 
@@ -748,9 +742,9 @@ class Dbol {
       $this->beginTransaction();
     }
 
-    // if db update is required and audit log level is set at DBOL_FIELD_AUDIT, then a preliminary
+    // if db update is required and audit log level is set at static::DBOL_FIELD_AUDIT, then a preliminary
     // re-read and locking of affected record is required
-    if ($dbolE->tableProperties['auditLogLevel'] > DBOL_ROW_AUDIT) {
+    if ($dbolE->tableProperties['auditLogLevel'] > static::DBOL_ROW_AUDIT) {
       // reads the most fresh version of the record from the db (on original PK), locking it for update
       $sql = "SELECT * FROM $tableName";
       $attrs = explode($this->_variables['PKSeparator'], $originalPKstring);
@@ -855,15 +849,15 @@ class Dbol {
     }
 
     // generates an audit log if needed
-    if ($dbolE->tableProperties['auditLogLevel'] > DBOL_NO_AUDIT) {
+    if ($dbolE->tableProperties['auditLogLevel'] > static::DBOL_NO_AUDIT) {
       if (!$primaryKeyChange) {
         $auditLogId = $this->_cbc->logRowAudit($obj, $dbolE, 'U', $uSeq);
-        if ($dbolE->tableProperties['auditLogLevel'] > DBOL_ROW_AUDIT) {
+        if ($dbolE->tableProperties['auditLogLevel'] > static::DBOL_ROW_AUDIT) {
           $this->_cbc->logFieldAudit($obj, $dbolE, $auditLogId, $changes);
         }
       } else {
         $auditLogId = $this->_cbc->logRowAudit($obj, $dbolE, 'u', $uSeq);
-        if ($dbolE->tableProperties['auditLogLevel'] > DBOL_ROW_AUDIT) {
+        if ($dbolE->tableProperties['auditLogLevel'] > static::DBOL_ROW_AUDIT) {
           $this->_cbc->logFieldAudit($obj, $dbolE, $auditLogId, $changes);
         }
         $auditLogId = $this->_cbc->logRowAudit($obj, $dbolE, 'D', $dSeq);
@@ -877,7 +871,7 @@ class Dbol {
     }
 
     // generates an additional audit log if needed and primary key changes (i.e. equals insert)
-    if ($dbolE->tableProperties['auditLogLevel'] > DBOL_NO_AUDIT and $primaryKeyChange) {
+    if ($dbolE->tableProperties['auditLogLevel'] > static::DBOL_NO_AUDIT and $primaryKeyChange) {
       $auditLogId = $this->_cbc->logRowAudit($obj, $dbolE, 'I', $iSeq);
     }
 
@@ -928,11 +922,11 @@ class Dbol {
       if ($c1 <> $c2 || (is_null($c1) and (!is_null($c2) or $c2 <> '')) || (!is_null($c1) and (is_null($c2) or $c2 == ''))) {
         $dbUpdate = true;
         // if change occurs on primary key attribs then special audit logging will be required
-        if ($dbolE->tableProperties['auditLogLevel'] > DBOL_NO_AUDIT and $dbolE->columnProperties[$d]['primaryKey']) {
+        if ($dbolE->tableProperties['auditLogLevel'] > static::DBOL_NO_AUDIT and $dbolE->columnProperties[$d]['primaryKey']) {
           $primaryKeyChange = true;
         }
         // if field changes need be tracked then add to the field changes array
-        if ($dbolE->tableProperties['auditLogLevel'] > DBOL_ROW_AUDIT and $dbolE->columnProperties[$d]['auditLog']) {
+        if ($dbolE->tableProperties['auditLogLevel'] > static::DBOL_ROW_AUDIT and $dbolE->columnProperties[$d]['auditLog']) {
           if ($dbolE->columnTypes[$d] == 'text' and empty($dbolE->columnProperties[$d]['length'])) {
             if (extension_loaded('xdiff')) {
               $diff = xdiff_string_diff($c1, $c2, 0);
@@ -982,7 +976,7 @@ class Dbol {
     }
 
     // prepares for audit log if needed
-    if ($dbolE->tableProperties['auditLogLevel'] > DBOL_NO_AUDIT) {
+    if ($dbolE->tableProperties['auditLogLevel'] > static::DBOL_NO_AUDIT) {
       $now  = $this->_variables['timestamp'] = $this->_cbc->getTimestamp();
       $dSeq = $this->_variables['deleteSequence'] = $this->_cbc->getNextDeleteSequence();
     }
@@ -1005,7 +999,7 @@ class Dbol {
     $res = $qb->execute();
 
     // generates an audit log if needed
-    if ($res > 0 and $dbolE->tableProperties['auditLogLevel'] > DBOL_NO_AUDIT) {
+    if ($res > 0 and $dbolE->tableProperties['auditLogLevel'] > static::DBOL_NO_AUDIT) {
       $auditLogId = $this->_cbc->logRowAudit($obj, $dbolE, 'D', $dSeq);
     }
 
@@ -1172,7 +1166,7 @@ class Dbol {
   /**
    * Logs a diagnostic message and manages error conditions
    *
-   * If exitOnError is true and the severity of the message is DBOL_ERROR, calls the errorHandler method
+   * If exitOnError is true and the severity of the message is static::DBOL_ERROR, calls the errorHandler method
    * in the callback object (or throws exception if callback object is not defined)
    *
    * @param int    $severity    severity of the diagnostic message
@@ -1195,7 +1189,7 @@ class Dbol {
     }
     if (isset($this->_cbc)) {
       $this->_cbc->diagnosticMessage($severity, $id, $text, $params, $qText, $className);
-      if ($severity == DBOL_ERROR and $exitOnError) {
+      if ($severity == static::DBOL_ERROR and $exitOnError) {
         $this->_cbc->errorHandler($id, $text, $params, $qText, $className);
       }
     }
@@ -1212,35 +1206,35 @@ class Dbol {
    *                      or an array with a new error code-message map
    *
    * @return mixed an array with error severity and text,
-   *               or DBOL_ERROR if the error code was not recognized
+   *               or static::DBOL_ERROR if the error code was not recognized
    */
   protected function _message($id = null) {
     static $diagnosticMessages;
 
     if (is_array($id)) {
       $diagnosticMessages = $id;
-      return DBOL_NOTICE;
+      return static::DBOL_NOTICE;
     }
     if (!isset($diagnosticMessages)) {
       $diagnosticMessages = array(
-          10       => array(DBOL_DEBUG, '%sqlId exceeded performance threshold (mSec=%elapsed, count=%rowCount)'),
-          11       => array(DBOL_INFO,  'Requested update on record no longer existing. Class: %class, Table: %table, PK: %primaryKeyString'),
-          12       => array(DBOL_INFO,  'Detected concurrent update. Class: %class, Table: %table, PK: %primaryKeyString, Sequence at read: %prevDbImageSeq, Sequence at update: %currDbImageSeq'),
-          100      => array(DBOL_ERROR, 'Variable %variable must be an array'),
-          101      => array(DBOL_ERROR, 'readSingle returned more than 1 record. Class: %class, Table: %table, Where: %whereClause'),
-          102      => array(DBOL_ERROR, '%method method does not support array of records as input. Class: %class, Table: %table'),
-          103      => array(DBOL_ERROR, '%method requested on object missing primaryKeyString attribute. Class: %class, Table: %table'),
-          104      => array(DBOL_ERROR, 'Undefined method %class::%method called'),
-          105      => array(DBOL_ERROR, "Database system for driver '%driver' not supported"),
-          106      => array(DBOL_ERROR, "Native datatype '%type' not supported"),
-          107      => array(DBOL_ERROR, "Query result row limitation not supported for %dbms"),
-          108      => array(DBOL_ERROR, 'Database handle not initialised.'),
+          10       => array(static::DBOL_DEBUG, '%sqlId exceeded performance threshold (mSec=%elapsed, count=%rowCount)'),
+          11       => array(static::DBOL_INFO,  'Requested update on record no longer existing. Class: %class, Table: %table, PK: %primaryKeyString'),
+          12       => array(static::DBOL_INFO,  'Detected concurrent update. Class: %class, Table: %table, PK: %primaryKeyString, Sequence at read: %prevDbImageSeq, Sequence at update: %currDbImageSeq'),
+          100      => array(static::DBOL_ERROR, 'Variable %variable must be an array'),
+          101      => array(static::DBOL_ERROR, 'readSingle returned more than 1 record. Class: %class, Table: %table, Where: %whereClause'),
+          102      => array(static::DBOL_ERROR, '%method method does not support array of records as input. Class: %class, Table: %table'),
+          103      => array(static::DBOL_ERROR, '%method requested on object missing primaryKeyString attribute. Class: %class, Table: %table'),
+          104      => array(static::DBOL_ERROR, 'Undefined method %class::%method called'),
+          105      => array(static::DBOL_ERROR, "Database system for driver '%driver' not supported"),
+          106      => array(static::DBOL_ERROR, "Native datatype '%type' not supported"),
+          107      => array(static::DBOL_ERROR, "Query result row limitation not supported for %dbms"),
+          108      => array(static::DBOL_ERROR, 'Database handle not initialised.'),
       );
     }
     if (is_null($id)) {
       return $diagnosticMessages;
     }
-    return isset($diagnosticMessages[$id]) ? $diagnosticMessages[$id] : DBOL_ERROR;
+    return isset($diagnosticMessages[$id]) ? $diagnosticMessages[$id] : static::DBOL_ERROR;
   }
 
 }
