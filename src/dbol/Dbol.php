@@ -43,11 +43,6 @@ class Dbol {
   protected $_variables = array();          // session context variables
   protected $_cbc = null;                        // callback interface instance
   protected $dbConnection = null;
-  /**
-   * DBMS interface
-   */
-  protected $dbmsI = null;
-
 
   /**
    * Voids dbol cloning
@@ -76,7 +71,7 @@ class Dbol {
    */
   public function __construct($connection_name, array $variables) {
     $this->dbConnection = DbConnection::getConnection($connection_name)['connection'];
-    $this->dbmsI = DbConnection::getConnection($connection_name)['dbms'];
+
     // sets $variables as dbol variables
     $this->setVariables($variables);
     // if callback class name passed, instantiates an object with passing $this as an
@@ -158,69 +153,6 @@ class Dbol {
     }
     else {
       return $this->_variables;
-    }
-  }
-
-  /**
-   * Loads the properties of all columns of a table, reversing from the DBMS
-   *
-   * @param object $dbolE the DbolEntry object representing the table
-   *
-   * @return void
-   */
-  public function fetchAllColumnsProperties($dbolE) {
-    // stores the lists of table columns & types, and
-    // an array with full details by column name
-    $tableName = $this->resolveDbObjectName($dbolE->table);
-    $tableColumns = $this->query($this->dbConnection->getDatabasePlatform()->getListTableColumnsSQL($tableName));
-    $res = $this->dbmsI->tableInfo($tableName, $tableColumns);
-    $j = 0;
-    foreach ($res as $a => $b) {
-      $dbolE->columns[] = $b['name'];
-      $dbolE->columnTypes[$b['name']] = $b['dboltype'];
-
-      $colDets = array();
-      // set seq property
-      $colDets['seq'] = $j;
-      // set type property
-      $colDets['type'] = $b['dboltype'];
-      // set nullable property
-      $colDets['nullable'] = $b['nullable'];
-      // set length/decimal property
-      if (strstr($b['length'], ',')) {
-        list($colDets['length'], $colDets['decimal']) = explode(",", $b['length']);
-      }
-      else {
-        $colDets['length'] = $b['length'];
-      }
-      // set default property
-      $colDets['default'] = $b['default'];
-      // set Autoincrement properties
-      if ($b['autoincrement'] == 1) {
-        $dbolE->AIColumns[] = $b['name'];
-        $colDets['autoIncrement'] = true;
-        $colDets['editable'] = false;
-      } else {
-        $colDets['autoIncrement'] = false;
-        $colDets['editable'] = true;
-      }
-      // set Primary Key properties
-      if ($b['primaryKey']) {
-        $dbolE->PKColumns[] = $b['name'];
-        $colDets['primaryKey'] = true;
-      } else {
-        $colDets['primaryKey'] = false;
-      }
-      // set Comment
-      if (isset($b['comment'])) {
-        $colDets['comment'] = $b['comment'];
-      }
-      // set audit property
-      if ($dbolE->tableProperties['auditLogLevel'] > DBOL_ROW_AUDIT) {
-        $colDets['auditLog'] = true;
-      }
-      $dbolE->columnProperties[$b['name']] = $colDets;
-      $j++;
     }
   }
 

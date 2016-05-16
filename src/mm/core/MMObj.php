@@ -2,6 +2,7 @@
 
 namespace mondrakeNG\mm\core;
 
+use mondrakeNG\dbol\DbConnection;
 use mondrakeNG\dbol\Dbol;
 use mondrakeNG\dbol\DbolEntry;
 
@@ -68,7 +69,7 @@ abstract class MMObj {
             self::$dbObj[$this->className]->tableProperties['performanceTracking'] = $res[0]['is_performance_tracked'];
             self::$dbObj[$this->className]->tableProperties['sequencing'] = $res[0]['is_sequenced'];
 
-            self::$dbol->fetchAllColumnsProperties(self::$dbObj[$this->className]);
+            DbConnection::fetchAllColumnsProperties('MM', self::$dbObj[$this->className]->table, self::$dbObj[$this->className]);
 
             self::$dbol->setColumnProperty(self::$dbObj[$this->className], array (
                 'create_by',
