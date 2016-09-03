@@ -166,7 +166,7 @@ class XmlFileLoader extends FileLoader
         }
 
         if ($deprecated = $this->getChildren($service, 'deprecated')) {
-            $definition->setDeprecated(true, $deprecated[0]->nodeValue);
+            $definition->setDeprecated(true, $deprecated[0]->nodeValue ?: null);
         }
 
         $definition->setArguments($this->getArgumentsAsPhp($service, 'argument'));
@@ -585,7 +585,7 @@ EOF
      *
      * @return array A PHP array
      */
-    public static function convertDomElementToArray(\DomElement $element)
+    public static function convertDomElementToArray(\DOMElement $element)
     {
         return XmlUtils::convertDomElementToArray($element);
     }
