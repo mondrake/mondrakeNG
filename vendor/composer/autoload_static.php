@@ -26,6 +26,10 @@ class ComposerStaticInit0ee04e2345e42ee4d232c9eb1ee93051
             'Symfony\\Component\\Debug\\' => 24,
             'Symfony\\Component\\Console\\' => 26,
         ),
+        'P' => 
+        array (
+            'Psr\\Log\\' => 8,
+        ),
         'D' => 
         array (
             'Doctrine\\Common\\Cache\\' => 22,
@@ -70,6 +74,10 @@ class ComposerStaticInit0ee04e2345e42ee4d232c9eb1ee93051
         array (
             0 => __DIR__ . '/..' . '/symfony/console',
         ),
+        'Psr\\Log\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
+        ),
         'Doctrine\\Common\\Cache\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/cache/lib/Doctrine/Common/Cache',
@@ -81,13 +89,6 @@ class ComposerStaticInit0ee04e2345e42ee4d232c9eb1ee93051
     );
 
     public static $prefixesPsr0 = array (
-        'P' => 
-        array (
-            'Psr\\Log\\' => 
-            array (
-                0 => __DIR__ . '/..' . '/psr/log',
-            ),
-        ),
         'D' => 
         array (
             'Doctrine\\DBAL\\' => 
