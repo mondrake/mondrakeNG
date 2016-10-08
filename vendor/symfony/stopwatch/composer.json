@@ -1,7 +1,7 @@
 {
-    "name": "symfony/console",
+    "name": "symfony/stopwatch",
     "type": "library",
-    "description": "Symfony Console Component",
+    "description": "Symfony Stopwatch Component",
     "keywords": [],
     "homepage": "https://symfony.com",
     "license": "MIT",
@@ -16,22 +16,10 @@
         }
     ],
     "require": {
-        "php": ">=5.5.9",
-        "symfony/polyfill-mbstring": "~1.0",
-        "symfony/debug": "~2.8|~3.0"
-    },
-    "require-dev": {
-        "symfony/event-dispatcher": "~2.8|~3.0",
-        "symfony/process": "~2.8|~3.0",
-        "psr/log": "~1.0"
-    },
-    "suggest": {
-        "symfony/event-dispatcher": "",
-        "symfony/process": "",
-        "psr/log": "For using the console logger"
+        "php": ">=5.5.9"
     },
     "autoload": {
-        "psr-4": { "Symfony\\Component\\Console\\": "" },
+        "psr-4": { "Symfony\\Component\\Stopwatch\\": "" },
         "exclude-from-classmap": [
             "/Tests/"
         ]
