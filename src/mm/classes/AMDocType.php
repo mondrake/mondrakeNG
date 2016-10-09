@@ -4,15 +4,15 @@ namespace mondrakeNG\mm\classes;
 
 use mondrakeNG\mm\core\MMObj;
 
-class AMDocType extends MMObj 
+class AMDocType extends MMObj
 {
-    public function isBalanceOpening($docTypeId) 
+    public function isBalanceOpening($docTypeId)
     {
         return ($docTypeId == 7) ? true : false;
     }
 
-    public function isBudget($docTypeId) 
+    public function isBudget($docTypeId)
     {
-        return false;    
+        return false;
     }
 }

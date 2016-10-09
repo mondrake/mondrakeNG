@@ -30,7 +30,7 @@ class AMPeriod extends MMObj
                 }
                 $offset--;
             }
-        } 
+        }
         return $i;
     }
 }

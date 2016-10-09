@@ -1,13 +1,13 @@
 <?php
 
 namespace mondrakeNG\mm\classes;
- 
+
 use mondrakeNG\mm\core\MMObj;
 
 class AXDoc extends MMObj {
- 
+
 	public function create($clientPKMap = false) {
-		$res = parent::create($clientPKMap); 
+		$res = parent::create($clientPKMap);
 		if ($res == 1 and count($this->docItems) > 0)	{
 			foreach ($this->docItems as $itm)	{
 				$itm->doc_id = $this->doc_id;
@@ -16,7 +16,7 @@ class AXDoc extends MMObj {
 		}
 		if ($this->doc_type_id == 4)	{
 			$pf = new AXPortfolio;
-			$pf->dayValuation(1, $this->doc_id);  
+			$pf->dayValuation(1, $this->doc_id);
 		}
 		return $res;
 	}
@@ -28,8 +28,8 @@ class AXDoc extends MMObj {
 			$this->docItems = $docItem->getDocItems($docId);
 		}
 		return $this;
-	} 
- 
+	}
+
 	public function delete($clientPKMap = false) {
 		if (count($this->docItems) > 0) {
 			foreach($this->docItems as $itm)
@@ -50,12 +50,12 @@ class AXDoc extends MMObj {
 				$this->docItems[] = $docItem;
 			}
 		}
-	}					
+	}
 
 	public function synch($src, $clientPKMap = false) {
 		parent::synch($src, $clientPKMap);
 		$res = $this->update();
-		
+
 		// deletes docItems in target not existing in src
 		foreach ($this->docItems as $itm)	{
 			$toBeDeleted = true;
@@ -91,7 +91,7 @@ class AXDoc extends MMObj {
 			$pf = new AXPortfolio;
 			$pf->dayValuation(1, $this->doc_id);
 		}
-		
+
 		return 1;
 	}
 }

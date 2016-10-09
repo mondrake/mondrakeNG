@@ -7,7 +7,7 @@ use mondrakeNG\mm\core\MMUtils;
 
 class MMClient extends MMObj {
 
-	public function __construct() {	
+	public function __construct() {
 		parent::__construct();
 		self::setColumnProperty(array ('client_token'),
 			'editable', FALSE);
@@ -26,7 +26,7 @@ class MMClient extends MMObj {
 				),
 			);
 		}
-    }  
+    }
 
 	public function clientCtlInit(){
 		$this->clientCtl->client_id = $this->client_id;
@@ -36,7 +36,7 @@ class MMClient extends MMObj {
 		$this->client_token = MMUtils::generateToken(20);
 		$res = parent::create();
 	}
-	
+
 	public function getClientFromToken($token) {
 		$res = $this->readSingle("client_token = '$token'" );
 //		if($res) $this->read($this->client_id);

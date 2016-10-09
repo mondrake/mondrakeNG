@@ -7,22 +7,22 @@ use mondrakeNG\mm\core\MMObj;
 require_once('ipinfodb.class.php');
 
 class MMIpLocation extends MMOBj {
- 
+
 	public function getAddress($addr)	{
 		return $this->readSingle("remote_address = '$addr'");
 	}
-	
+
 	public function locate($addr)	{
 
 		if(IP_LOCATION_SERVICE_ENABLED == false)
-			return; 
+			return;
 
 		$res = $this->getAddress($addr);
 
 		if(count($res) == 0 or (count($res) == 1 and ((strtotime(gmdate('Y-m-d H:i:s')))-strtotime($this->last_resolution_ts)) > (3600*24*7))) 	{
 			$ipinfodb = new ipinfodb;
 			$ipinfodb->setKey(IP_LOCATION_SERVICE_KEY);
-		 
+
 			//Get errors and locations
 			$parms = $ipinfodb->getGeoLocation($addr);
 			$errors = $ipinfodb->getError();

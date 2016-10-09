@@ -5,7 +5,7 @@ namespace mondrakeNG\rbppavl;
 /**
  * PHP AVL binary tree
  *
- * A set of PHP classes implementing management of binary trees according to 
+ * A set of PHP classes implementing management of binary trees according to
  * AVL rules.
  * The API exposes tree management operations (insert, replace, delete, find),
  * traversal (find, first, last, prev, next, curr). Nodes within the trees are
@@ -13,7 +13,7 @@ namespace mondrakeNG\rbppavl;
  * Tree and traversal operations implement relaxed balance factors, and
  * parent-pointer node structures.
  * Hooks for node comparison, error handling and logging capabilities are provided
- * via a callback interface. 
+ * via a callback interface.
  *
  * PHP version 5
  *
@@ -42,19 +42,19 @@ abstract class RbppavlCommon extends Rbppavl
     /**
      * Callback interface instance
      *
-     * @type RbppavlCbInterface 
+     * @type RbppavlCbInterface
      */
     protected $cbc = null;
 
     /**
      * Debug mode - if true, tree management operation are verbosely diagnosed
      *
-     * @type boolean 
+     * @type boolean
      */
     protected $debugMode = false;
 
     /**
-     * If different from 0, insertions of new nodes are preliminary checked 
+     * If different from 0, insertions of new nodes are preliminary checked
      * vs remaining memory available
      *
      * @type integer
@@ -73,17 +73,17 @@ abstract class RbppavlCommon extends Rbppavl
      * Internal status of tree management classes (RbppavlTree, RbppavlTraverser)
      *
      * Array keys:
-     * - 'level'         status level complying to RFC 3164 
+     * - 'level'         status level complying to RFC 3164
      * - 'code'          status code as per _message()
      * - 'messageParams' array of parameters to qualify the message text
      *
-     * @type array 
+     * @type array
      */
     protected $status = array('level'         => RBPPAVL_NOTICE,
                               'code'          => 100,
                               'messageParams' => null);
 
-                              
+
     /**
      * Handles calls to inaccessible methods
      *
@@ -111,7 +111,7 @@ abstract class RbppavlCommon extends Rbppavl
      */
     public function __get($name)
     {
-        // inaccessible property 
+        // inaccessible property
         $this->setStatus(105, array('%property' => $name,));
     }
 
@@ -127,14 +127,14 @@ abstract class RbppavlCommon extends Rbppavl
      */
     public function __set($name, $value)
     {
-        // inaccessible property 
+        // inaccessible property
         $this->setStatus(105, array('%property' => $name,));
     }
 
     /**
      * Gets Rbppavl version and state.
      *
-     * @param boolean $setStatus if true, internal status is updated and 
+     * @param boolean $setStatus if true, internal status is updated and
      *                           a diagnostic message broadcast
      *
      * @return array an array with [0] = Rbppavl version number and [1] = Rbppavl version state
@@ -230,7 +230,7 @@ abstract class RbppavlCommon extends Rbppavl
                 }
             }
             return $p;
-        }    
+        }
     }
 
     /**
@@ -364,7 +364,7 @@ abstract class RbppavlCommon extends Rbppavl
      *
      * Internal status is updated with the severity level as identified by the message id.
      * Diagnostic message is passed over to the callback interface.
-     * In case of RBPPAVL_ERROR, error handling is passed over to the callback interface; 
+     * In case of RBPPAVL_ERROR, error handling is passed over to the callback interface;
      * if callback interface is not instantiated yet, a standard exception is thrown.
      *
      * @param int     $id     the id of the diagnostic message
@@ -457,10 +457,10 @@ abstract class RbppavlCommon extends Rbppavl
      *
      * Each array item is itself an array, with first element being the severity
      * {RBPPAVL_DEBUG|RBPPAVL_INFO|RBPPAVL_NOTICE|RBPPAVL_WARNING|RBPPAVL_ERROR},
-     * and the second the unqualified diagnostic text. 
+     * and the second the unqualified diagnostic text.
      * A % sign precedes in the text a parameter identifier; getStatusMessage()
-     * will replace at run-time the parameters with actual data to qualify the 
-     * message.     
+     * will replace at run-time the parameters with actual data to qualify the
+     * message.
      *
      * @return array current Rbppavl diagnostic messages
      *
@@ -474,9 +474,9 @@ abstract class RbppavlCommon extends Rbppavl
     /**
      * Sets Rbppavl diagnostic messages.
      *
-     * Each array item of the input arrayis itself an array, with first 
+     * Each array item of the input arrayis itself an array, with first
      * element being the severity {RBPPAVL_DEBUG|RBPPAVL_INFO|RBPPAVL_NOTICE|RBPPAVL_WARNING|RBPPAVL_ERROR},
-     * and the second the unqualified diagnostic text. 
+     * and the second the unqualified diagnostic text.
      *
      * @param array $table Rbppavl diagnostic messages
      *
@@ -540,9 +540,9 @@ abstract class RbppavlCommon extends Rbppavl
      *                  3) array to merge a new diagnostic message map
      *
      * @return mixed 1) an array with diagnostic message severity and unqualified text,
-     *                  or null if not found 
+     *                  or null if not found
      *               2) the entire map
-     *               3) the resulting merged array 
+     *               3) the resulting merged array
      */
     private function _message($id = null)
     {

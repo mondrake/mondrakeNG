@@ -1,7 +1,7 @@
 <?php
 
 namespace mondrakeNG\mm\classes;
- 
+
 use mondrakeNG\mm\core\MMObj;
 use mondrakeNG\mm\core\MMTimer;
 use mondrakeNG\mm\core\MMUtils;
@@ -29,7 +29,7 @@ class AXPortfolio extends MMObj {
 				),
 			);
 		}
-    }  
+    }
 
 	public function portfolioCtlInit(){
 		$this->portfolioCtl->environment_id = $this->environment_id;
@@ -39,7 +39,7 @@ class AXPortfolio extends MMObj {
 	}
 
 	//
-	// -------- DAILY  
+	// -------- DAILY
 	//
 	public function dayValuation($periodTypeId, $docId) {
         $docType = new AMDocType;
@@ -57,7 +57,7 @@ class AXPortfolio extends MMObj {
 
 		// main update cycle
 		//todo if updmx is null
-		$updCount = $insCount= 0; 
+		$updCount = $insCount= 0;
 		foreach($doc->docItems as $a) {
 
 			$dayBal = new AXPortfolioDailyVal;
@@ -93,7 +93,7 @@ class AXPortfolio extends MMObj {
 			}
 			else {
 				$sqlId = "PFTDayVal";
-			} 
+			}
 			$sqlq = MMUtils::retrieveSqlStatement($sqlId, $params);
 			$updMx = MMObj::query($sqlq, NULL, NULL, $sqlId);
 
@@ -113,22 +113,22 @@ class AXPortfolio extends MMObj {
 			}
 			else {
 				$valEntry[value] = $a->doc_item_account_currency_amount;
-			} 
+			}
 			$eVals[] = $valEntry;
 //print_r($eVals);print"<br/>";
 			$dayBal->loading_value = -$dPortaf;
 			$dayBal->day_delta = ($dayBal->day_value / $dayBal->loading_value) - 1;
 			$dayBal->day_xirr = self::xirrCalculate($eVals, $iterations);
-			
+
 			if (count($res) == 1)	{		// update existing
 				$updCount += $dayBal->update();
-				$this->msgs[] = $timer->timenow() . " update $dayBal->entity_id $dayBal->entity_key_01 $dayBal->day_xirr iterations:$iterations"; 
+				$this->msgs[] = $timer->timenow() . " update $dayBal->entity_id $dayBal->entity_key_01 $dayBal->day_xirr iterations:$iterations";
 			}
 			else	{
 				$insCount += $dayBal->create();
 				$this->msgs[] = $timer->timenow() . " insert $dayBal->entity_id $dayBal->entity_key_01 $dayBal->day_xirr iterations:$iterations";
 			}
-			
+
 			unset($dayBal);
 		}
 		$timer->stop();
@@ -137,7 +137,7 @@ class AXPortfolio extends MMObj {
 
 	private function xirrCalculate($arr, $iterations)	{
 		$iterations = 0;
-   
+
 		if (count($arr) == 2 And $arr[0][date] == $arr[1][date])
 			return 0;
 
@@ -145,7 +145,7 @@ class AXPortfolio extends MMObj {
 		for ($X1 = 1; $X1 <= 10000; $X1++)	{
 			$xrate = $X1;
 			$sumA = self::xirrCycle($iterations, $arr, $xrate);
-//print($iterations . " " . "X1" . " " . $X1 . " " . $sumA . " " . $xrate . "<br/>"); 
+//print($iterations . " " . "X1" . " " . $X1 . " " . $sumA . " " . $xrate . "<br/>");
 			if ($sumA == 0)
 				return $xrate;
 			if ($sumA < $value1)
@@ -156,7 +156,7 @@ class AXPortfolio extends MMObj {
 			$sumA = self::xirrCycle($iterations, $arr, $xrate);
 			if ($sumA == 0)
 				return $xrate;
-			if ($sumA > $value1) 
+			if ($sumA > $value1)
 				break;
 		}
 		for ($X3 = $X2; $X3 <= $X1; $X3 += 0.01)	{
@@ -217,7 +217,7 @@ class AXPortfolio extends MMObj {
 		}
 		return $xrate;
 	}
-	
+
 	private function xirrCycle($iterations, $arr, $xrate)	{
 		$iterations++;
 		$date1 = $arr[0][date];
