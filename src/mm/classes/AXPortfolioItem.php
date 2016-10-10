@@ -17,5 +17,5 @@ class AXPortfolioItem extends MMObj {
 				),
 			);
 		}
-    }  
+    }
 }

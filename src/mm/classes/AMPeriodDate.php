@@ -5,7 +5,7 @@ namespace mondrakeNG\mm\classes;
 use mondrakeNG\mm\core\MMObj;
 use mondrakeNG\mm\core\MMUtils;
 
-class AMPeriodDate extends MMObj 
+class AMPeriodDate extends MMObj
 {
     public function defineChildObjs()    {
         if (!isset(self::$childObjs[$this->className])) {
@@ -19,7 +19,7 @@ class AMPeriodDate extends MMObj
                 ),
             );
         }
-    }  
+    }
     public function getOffsetDate($offset) {
         $i = new self;
         $dtOffset = MMUtils::dateOffset($this->period_date, $offset);

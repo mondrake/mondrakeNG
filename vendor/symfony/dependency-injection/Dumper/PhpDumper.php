@@ -58,6 +58,8 @@ class PhpDumper extends Dumper
     private $targetDirRegex;
     private $targetDirMaxMatches;
     private $docStar;
+    private $serviceIdToMethodNameMap;
+    private $usedMethodNames;
 
     /**
      * @var \Symfony\Component\DependencyInjection\LazyProxy\PhpDumper\DumperInterface
@@ -106,6 +108,9 @@ class PhpDumper extends Dumper
             'namespace' => '',
             'debug' => true,
         ), $options);
+
+        $this->initializeMethodNamesMap($options['base_class']);
+
         $this->docStar = $options['debug'] ? '*' : '';
 
         if (!empty($options['file']) && is_dir($dir = dirname($options['file']))) {
@@ -138,6 +143,7 @@ class PhpDumper extends Dumper
         if ($this->container->isFrozen()) {
             $code .= $this->addFrozenConstructor();
             $code .= $this->addFrozenCompile();
+            $code .= $this->addIsFrozenMethod();
         } else {
             $code .= $this->addConstructor();
         }
@@ -325,7 +331,7 @@ class PhpDumper extends Dumper
                     throw new ServiceCircularReferenceException($id, array($id));
                 }
 
-                $code .= $this->addNewInstance($sDefinition, '$'.$name, ' = ');
+                $code .= $this->addNewInstance($sDefinition, '$'.$name, ' = ', $id);
 
                 if (!$this->hasReference($id, $sDefinition->getMethodCalls(), true) && !$this->hasReference($id, $sDefinition->getProperties(), true)) {
                     $code .= $this->addServiceMethodCalls(null, $sDefinition, $name);
@@ -368,7 +374,7 @@ class PhpDumper extends Dumper
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    private function addServiceInstance($id, $definition)
+    private function addServiceInstance($id, Definition $definition)
     {
         $class = $definition->getClass();
 
@@ -399,7 +405,7 @@ class PhpDumper extends Dumper
             $instantiation .= ' = ';
         }
 
-        $code = $this->addNewInstance($definition, $return, $instantiation);
+        $code = $this->addNewInstance($definition, $return, $instantiation, $id);
 
         if (!$simple) {
             $code .= "\n";
@@ -416,7 +422,7 @@ class PhpDumper extends Dumper
      *
      * @return bool
      */
-    private function isSimpleInstance($id, $definition)
+    private function isSimpleInstance($id, Definition $definition)
     {
         foreach (array_merge(array($definition), $this->getInlinedDefinitions($definition)) as $sDefinition) {
             if ($definition !== $sDefinition && !$this->hasReference($id, $sDefinition->getMethodCalls())) {
@@ -440,7 +446,7 @@ class PhpDumper extends Dumper
      *
      * @return string
      */
-    private function addServiceMethodCalls($id, $definition, $variableName = 'instance')
+    private function addServiceMethodCalls($id, Definition $definition, $variableName = 'instance')
     {
         $calls = '';
         foreach ($definition->getMethodCalls() as $call) {
@@ -455,7 +461,7 @@ class PhpDumper extends Dumper
         return $calls;
     }
 
-    private function addServiceProperties($id, $definition, $variableName = 'instance')
+    private function addServiceProperties($id, Definition $definition, $variableName = 'instance')
     {
         $code = '';
         foreach ($definition->getProperties() as $name => $value) {
@@ -475,7 +481,7 @@ class PhpDumper extends Dumper
      *
      * @throws ServiceCircularReferenceException when the container contains a circular reference
      */
-    private function addServiceInlinedDefinitionsSetup($id, $definition)
+    private function addServiceInlinedDefinitionsSetup($id, Definition $definition)
     {
         $this->referenceVariables[$id] = new Variable('instance');
 
@@ -519,7 +525,7 @@ class PhpDumper extends Dumper
      *
      * @return string
      */
-    private function addServiceConfigurator($id, $definition, $variableName = 'instance')
+    private function addServiceConfigurator($id, Definition $definition, $variableName = 'instance')
     {
         if (!$callable = $definition->getConfigurator()) {
             return '';
@@ -537,6 +543,10 @@ class PhpDumper extends Dumper
                 return sprintf("        %s::%s(\$%s);\n", $this->dumpLiteralClass($class), $callable[1], $variableName);
             }
 
+            if (0 === strpos($class, 'new ')) {
+                return sprintf("        (%s)->%s(\$%s);\n", $this->dumpValue($callable[0]), $callable[1], $variableName);
+            }
+
             return sprintf("        call_user_func(array(%s, '%s'), \$%s);\n", $this->dumpValue($callable[0]), $callable[1], $variableName);
         }
 
@@ -551,7 +561,7 @@ class PhpDumper extends Dumper
      *
      * @return string
      */
-    private function addService($id, $definition)
+    private function addService($id, Definition $definition)
     {
         $this->definitionVariables = new \SplObjectStorage();
         $this->referenceVariables = array();
@@ -562,16 +572,16 @@ class PhpDumper extends Dumper
         if ($definition->isSynthetic()) {
             $return[] = '@throws RuntimeException always since this service is expected to be injected dynamically';
         } elseif ($class = $definition->getClass()) {
-            $return[] = sprintf('@return %s A %s instance.', 0 === strpos($class, '%') ? 'object' : '\\'.ltrim($class, '\\'), ltrim($class, '\\'));
+            $return[] = sprintf('@return %s A %s instance', 0 === strpos($class, '%') ? 'object' : '\\'.ltrim($class, '\\'), ltrim($class, '\\'));
         } elseif ($definition->getFactory()) {
             $factory = $definition->getFactory();
             if (is_string($factory)) {
-                $return[] = sprintf('@return object An instance returned by %s().', $factory);
+                $return[] = sprintf('@return object An instance returned by %s()', $factory);
             } elseif (is_array($factory) && (is_string($factory[0]) || $factory[0] instanceof Definition || $factory[0] instanceof Reference)) {
                 if (is_string($factory[0]) || $factory[0] instanceof Reference) {
-                    $return[] = sprintf('@return object An instance returned by %s::%s().', (string) $factory[0], $factory[1]);
+                    $return[] = sprintf('@return object An instance returned by %s::%s()', (string) $factory[0], $factory[1]);
                 } elseif ($factory[0] instanceof Definition) {
-                    $return[] = sprintf('@return object An instance returned by %s::%s().', $factory[0]->getClass(), $factory[1]);
+                    $return[] = sprintf('@return object An instance returned by %s::%s()', $factory[0]->getClass(), $factory[1]);
                 }
             }
         }
@@ -625,6 +635,7 @@ EOF;
         // with proxies, for 5.3.3 compatibility, the getter must be public to be accessible to the initializer
         $isProxyCandidate = $this->getProxyDumper()->isProxyCandidate($definition);
         $visibility = $isProxyCandidate ? 'public' : 'protected';
+        $methodName = $this->generateMethodName($id);
         $code = <<<EOF
 
     /*{$this->docStar}
@@ -632,12 +643,12 @@ EOF;
      *$lazyInitializationDoc
      * $return
      */
-    {$visibility} function get{$this->camelize($id)}Service($lazyInitialization)
+    {$visibility} function {$methodName}($lazyInitialization)
     {
 
 EOF;
 
-        $code .= $isProxyCandidate ? $this->getProxyDumper()->getProxyFactoryCode($definition, $id) : '';
+        $code .= $isProxyCandidate ? $this->getProxyDumper()->getProxyFactoryCode($definition, $id, $methodName) : '';
 
         if ($definition->isSynthetic()) {
             $code .= sprintf("        throw new RuntimeException('You have requested a synthetic service (\"%s\"). The DIC does not know how to construct this service.');\n    }\n", $id);
@@ -686,7 +697,7 @@ EOF;
         return $publicServices.$privateServices;
     }
 
-    private function addNewInstance(Definition $definition, $return, $instantiation)
+    private function addNewInstance(Definition $definition, $return, $instantiation, $id)
     {
         $class = $this->dumpValue($definition->getClass());
 
@@ -710,7 +721,15 @@ EOF;
                 $class = $this->dumpValue($callable[0]);
                 // If the class is a string we can optimize call_user_func away
                 if (strpos($class, "'") === 0) {
+                    if ("''" === $class) {
+                        throw new RuntimeException(sprintf('Cannot dump definition: The "%s" service is defined to be created by a factory but is missing the service reference, did you forget to define the factory service id or class?', $id));
+                    }
+
                     return sprintf("        $return{$instantiation}%s::%s(%s);\n", $this->dumpLiteralClass($class), $callable[1], $arguments ? implode(', ', $arguments) : '');
+                }
+
+                if (0 === strpos($class, 'new ')) {
+                    return sprintf("        $return{$instantiation}(%s)->%s(%s);\n", $this->dumpValue($callable[0]), $callable[1], $arguments ? implode(', ', $arguments) : '');
                 }
 
                 return sprintf("        $return{$instantiation}call_user_func(array(%s, '%s')%s);\n", $this->dumpValue($callable[0]), $callable[1], $arguments ? ', '.implode(', ', $arguments) : '');
@@ -851,6 +870,26 @@ EOF;
     }
 
     /**
+     * Adds the isFrozen method for a frozen container.
+     *
+     * @return string
+     */
+    private function addIsFrozenMethod()
+    {
+        return <<<EOF
+
+    /*{$this->docStar}
+     * {@inheritdoc}
+     */
+    public function isFrozen()
+    {
+        return true;
+    }
+
+EOF;
+    }
+
+    /**
      * Adds the methodMap property definition.
      *
      * @return string
@@ -864,7 +903,7 @@ EOF;
         $code = "        \$this->methodMap = array(\n";
         ksort($definitions);
         foreach ($definitions as $id => $definition) {
-            $code .= '            '.var_export($id, true).' => '.var_export('get'.$this->camelize($id).'Service', true).",\n";
+            $code .= '            '.var_export($id, true).' => '.var_export($this->generateMethodName($id), true).",\n";
         }
 
         return $code."        );\n";
@@ -993,7 +1032,7 @@ EOF;
      *
      * @throws InvalidArgumentException
      */
-    private function exportParameters($parameters, $path = '', $indent = 12)
+    private function exportParameters(array $parameters, $path = '', $indent = 12)
     {
         $php = array();
         foreach ($parameters as $key => $value) {
@@ -1158,7 +1197,7 @@ EOF;
                     return true;
                 }
 
-                if ($deep && !isset($visited[$argumentId])) {
+                if ($deep && !isset($visited[$argumentId]) && 'service_container' !== $argumentId) {
                     $visited[$argumentId] = true;
 
                     $service = $this->container->getDefinition($argumentId);
@@ -1339,6 +1378,25 @@ EOF;
     }
 
     /**
+     * Initializes the method names map to avoid conflicts with the Container methods.
+     *
+     * @param string $class the container base class
+     */
+    private function initializeMethodNamesMap($class)
+    {
+        $this->serviceIdToMethodNameMap = array();
+        $this->usedMethodNames = array();
+
+        try {
+            $reflectionClass = new \ReflectionClass($class);
+            foreach ($reflectionClass->getMethods() as $method) {
+                $this->usedMethodNames[strtolower($method->getName())] = true;
+            }
+        } catch (\ReflectionException $e) {
+        }
+    }
+
+    /**
      * Convert a service id to a valid PHP method name.
      *
      * @param string $id
@@ -1347,15 +1405,26 @@ EOF;
      *
      * @throws InvalidArgumentException
      */
-    private function camelize($id)
+    private function generateMethodName($id)
     {
-        $name = Container::camelize($id);
-
-        if (!preg_match('/^[a-zA-Z0-9_\x7f-\xff]+$/', $name)) {
-            throw new InvalidArgumentException(sprintf('Service id "%s" cannot be converted to a valid PHP method name.', $id));
+        if (isset($this->serviceIdToMethodNameMap[$id])) {
+            return $this->serviceIdToMethodNameMap[$id];
         }
 
-        return $name;
+        $name = Container::camelize($id);
+        $name = preg_replace('/[^a-zA-Z0-9_\x7f-\xff]/', '', $name);
+        $methodName = 'get'.$name.'Service';
+        $suffix = 1;
+
+        while (isset($this->usedMethodNames[strtolower($methodName)])) {
+            ++$suffix;
+            $methodName = 'get'.$name.$suffix.'Service';
+        }
+
+        $this->serviceIdToMethodNameMap[$id] = $methodName;
+        $this->usedMethodNames[strtolower($methodName)] = true;
+
+        return $methodName;
     }
 
     /**

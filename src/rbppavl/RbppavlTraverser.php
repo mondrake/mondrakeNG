@@ -5,7 +5,7 @@ namespace mondrakeNG\rbppavl;
 /**
  * PHP AVL binary tree
  *
- * A set of PHP classes implementing management of binary trees according to 
+ * A set of PHP classes implementing management of binary trees according to
  * AVL rules.
  * The API exposes tree management operations (insert, replace, delete, find),
  * traversal (find, first, last, prev, next, curr). Nodes within the trees are
@@ -13,7 +13,7 @@ namespace mondrakeNG\rbppavl;
  * Tree and traversal operations implement relaxed balance factors, and
  * parent-pointer node structures.
  * Hooks for node comparison, error handling and logging capabilities are provided
- * via a callback interface. 
+ * via a callback interface.
  *
  * PHP version 5
  *
@@ -40,14 +40,14 @@ class RbppavlTraverser extends RbppavlCommon
     /**
      * Tree being traversed
      *
-     * @type RbppavlTree 
+     * @type RbppavlTree
      */
     private $_tree;
 
     /**
      * Cursor to current node in tree
      *
-     * @type RbppavlNode 
+     * @type RbppavlNode
      */
     private $_node;
 
@@ -106,7 +106,7 @@ class RbppavlTraverser extends RbppavlCommon
      *
      * If found, cursor is set to identified node, and a pointer to the data
      * object is returned.
-     * If there is no matching data object, cursor is set to null and 
+     * If there is no matching data object, cursor is set to null and
      * and returns null.
      *
      * @param object $data data object to be searched

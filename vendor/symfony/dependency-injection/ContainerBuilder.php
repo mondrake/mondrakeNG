@@ -51,11 +51,6 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
     private $definitions = array();
 
     /**
-     * @var Definition[]
-     */
-    private $obsoleteDefinitions = array();
-
-    /**
      * @var Alias[]
      */
     private $aliasDefinitions = array();
@@ -346,21 +341,9 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
     {
         $id = strtolower($id);
 
-        if ($this->isFrozen()) {
+        if ($this->isFrozen() && (isset($this->definitions[$id]) && !$this->definitions[$id]->isSynthetic())) {
             // setting a synthetic service on a frozen container is alright
-            if (
-                (!isset($this->definitions[$id]) && !isset($this->obsoleteDefinitions[$id]))
-                    ||
-                (isset($this->definitions[$id]) && !$this->definitions[$id]->isSynthetic())
-                    ||
-                (isset($this->obsoleteDefinitions[$id]) && !$this->obsoleteDefinitions[$id]->isSynthetic())
-            ) {
-                throw new BadMethodCallException(sprintf('Setting service "%s" on a frozen container is not allowed.', $id));
-            }
-        }
-
-        if (isset($this->definitions[$id])) {
-            $this->obsoleteDefinitions[$id] = $this->definitions[$id];
+            throw new BadMethodCallException(sprintf('Setting service "%s" for an unknown or non-synthetic service definition on a frozen container is not allowed.', $id));
         }
 
         unset($this->definitions[$id], $this->aliasDefinitions[$id]);
@@ -415,7 +398,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
             return $service;
         }
 
-        if (!array_key_exists($id, $this->definitions) && isset($this->aliasDefinitions[$id])) {
+        if (!isset($this->definitions[$id]) && isset($this->aliasDefinitions[$id])) {
             return $this->get($this->aliasDefinitions[$id]);
         }
 
@@ -458,7 +441,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      * parameter, the value will still be 'bar' as defined in the ContainerBuilder
      * constructor.
      *
-     * @param ContainerBuilder $container The ContainerBuilder instance to merge.
+     * @param ContainerBuilder $container The ContainerBuilder instance to merge
      *
      * @throws BadMethodCallException When this ContainerBuilder is frozen
      */
@@ -751,7 +734,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      */
     public function hasDefinition($id)
     {
-        return array_key_exists(strtolower($id), $this->definitions);
+        return isset($this->definitions[strtolower($id)]);
     }
 
     /**
@@ -767,7 +750,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
     {
         $id = strtolower($id);
 
-        if (!array_key_exists($id, $this->definitions)) {
+        if (!isset($this->definitions[$id])) {
             throw new ServiceNotFoundException($id);
         }
 
@@ -944,7 +927,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      *
      * @param string $name The tag name
      *
-     * @return array An array of tags with the tagged service as key, holding a list of attribute arrays.
+     * @return array An array of tags with the tagged service as key, holding a list of attribute arrays
      */
     public function findTaggedServiceIds($name)
     {
@@ -1000,7 +983,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
     /**
      * Returns the Service Conditionals.
      *
-     * @param mixed $value An array of conditionals to return.
+     * @param mixed $value An array of conditionals to return
      *
      * @return array An array of Service conditionals
      */

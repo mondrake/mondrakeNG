@@ -5,7 +5,7 @@ namespace mondrakeNG\rbppavl;
 /**
  * PHP AVL binary tree
  *
- * A set of PHP classes implementing management of binary trees according to 
+ * A set of PHP classes implementing management of binary trees according to
  * AVL rules.
  * The API exposes tree management operations (insert, replace, delete, find),
  * traversal (find, first, last, prev, next, curr). Nodes within the trees are
@@ -13,7 +13,7 @@ namespace mondrakeNG\rbppavl;
  * Tree and traversal operations implement relaxed balance factors, and
  * parent-pointer node structures.
  * Hooks for node comparison, error handling and logging capabilities are provided
- * via a callback interface. 
+ * via a callback interface.
  *
  * PHP version 5
  *
@@ -27,8 +27,8 @@ namespace mondrakeNG\rbppavl;
 /**
  * Rbppavl callback class interface definition.
  *
- * Defines callback methods needed by instances of RbppavlTree 
- * and RbppavlTraverser. 
+ * Defines callback methods needed by instances of RbppavlTree
+ * and RbppavlTraverser.
  *
  * @category Structures
  * @package  Rbppavl
@@ -51,7 +51,7 @@ interface RbppavlCbInterface
      * @api
      */
     public function compare($a, $b);
-    
+
     /**
      * Returns a custom formatting of a data object.
      *

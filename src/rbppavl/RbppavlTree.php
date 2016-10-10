@@ -5,7 +5,7 @@ namespace mondrakeNG\rbppavl;
 /**
  * PHP AVL binary tree
  *
- * A set of PHP classes implementing management of binary trees according to 
+ * A set of PHP classes implementing management of binary trees according to
  * AVL rules.
  * The API exposes tree management operations (insert, replace, delete, find),
  * traversal (find, first, last, prev, next, curr). Nodes within the trees are
@@ -13,7 +13,7 @@ namespace mondrakeNG\rbppavl;
  * Tree and traversal operations implement relaxed balance factors, and
  * parent-pointer node structures.
  * Hooks for node comparison, error handling and logging capabilities are provided
- * via a callback interface. 
+ * via a callback interface.
  *
  * PHP version 5
  *
@@ -28,8 +28,8 @@ namespace mondrakeNG\rbppavl;
  * AVL tree.
  *
  * Implements relaxed balance factors, and parent-pointer node structures.
- * When instantiating a new tree, a callback interface must have been defined 
- * in compliance to RbppavlCbInterface, and its class name passed as an argument. 
+ * When instantiating a new tree, a callback interface must have been defined
+ * in compliance to RbppavlCbInterface, and its class name passed as an argument.
  * Rbppavl will create an instance of the specified class.
  *
  * @category Structures
@@ -43,28 +43,28 @@ class RbppavlTree extends RbppavlCommon
     /**
      * Pointer to the root node of the tree
      *
-     * @type RbppavlNode 
+     * @type RbppavlNode
      */
     public $root;
-    
+
     /**
      * Maximum imbalance allowed for a node
      *
-     * @type integer 
+     * @type integer
      */
     public $balanceFactor;
 
     /**
      * Number of nodes in tree
      *
-     * @type integer 
+     * @type integer
      */
     private $_count;
 
     /**
      * Internal tree statistics
      *
-     * @type array 
+     * @type array
      */
     private $_statistics = array( 'att_ins'  => 0,
                                   'att_repl' => 0,
@@ -595,7 +595,7 @@ class RbppavlTree extends RbppavlCommon
                 $x->heightReset();
                 $w->heightReset();
             }
-        } else {       
+        } else {
             $x = $y->link[1];
             if ($x->balance() >= 0) {                    // RR rotation
                 // debug diagnostic    - rotation
@@ -663,7 +663,7 @@ class RbppavlTree extends RbppavlCommon
      *
      * This method should be used only for debugging purposes.
      *
-     * Recursively checks all nodes in tree to see if nodes' height property and 
+     * Recursively checks all nodes in tree to see if nodes' height property and
      * balance factor are computed correctly.
      *
      * @param boolean $setStatusOnSuccess if true and validation is successful, internal
@@ -738,7 +738,7 @@ class RbppavlTree extends RbppavlCommon
      * @param int    $level    the level at which the node is positioned
      * @param string $pos      the node position in the level in binary notation
      * @param int    $maxLevel maximum level to recurse down to
-     * @param array  &$arr     the array to be filled 
+     * @param array  &$arr     the array to be filled
      *
      * @return null
      */
@@ -769,7 +769,7 @@ class RbppavlTree extends RbppavlCommon
     /**
      * Gets internal tree statistics.
      *
-     * Rbppavl maintains an internal set of statistics on tree operation performed in an 
+     * Rbppavl maintains an internal set of statistics on tree operation performed in an
      * associative array. The keys of the array are the following:
      * - 'balance_factor' tree's balance factor
      * - 'height'         root height
