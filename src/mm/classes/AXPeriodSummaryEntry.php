@@ -27,4 +27,3 @@ class AXPeriodSummaryEntry
     public $budgetCt       = 0;
     public $budgetBal      = 0;
 }
-

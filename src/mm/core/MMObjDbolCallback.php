@@ -160,4 +160,3 @@ class MMObjDbolCallback implements DbolCallbackInterface	{
 	}
 
 }
-
