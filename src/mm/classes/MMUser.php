@@ -45,5 +45,3 @@ class MMUser extends MMObj	{
 		return $this->readSingle("user_token = '$token'" );
 	}
 }
-
-?>

@@ -1,19 +1,19 @@
 <?php
 
 namespace mondrakeNG\mm\core;
-  
+
 use mondrakeNG\mm\classes\MMDbCache;
 use mondrakeNG\mm\classes\MMSqlStatement;
- 
+
 class MMUtils	{
 	public static function date()	{
 		return gmdate('Y-m-d');
 	}
-    
+
 	public static function dateOffset($date, $offset)	{
 		return gmdate('Y-m-d', (strtotime($date) + ($offset * 3600 * 24)));
 	}
-	
+
 	public static function timestamp()	{
 		return gmdate('Y-m-d H:i:s');
 	}
@@ -27,11 +27,11 @@ class MMUtils	{
 		while ($i <= ($len - 1)) {
 			$num = rand() % ($charsLen - 1);
 			$tmp = substr($chars, $num, 1);
-			$pass = $pass . $tmp; 
+			$pass = $pass . $tmp;
 			$i++;
 		}
 		return md5($pass);
-	}	
+	}
 
 	public static function retrieveSqlStatement($stmtKey, $params) {
 		$stObj = new MMSqlStatement;
@@ -44,15 +44,15 @@ class MMUtils	{
 		}
 		return $sqlq;
 	}
-	
+
 	public static function getCache($cacheId)	{
 		$c = new MMDbCache;
 		$r = $c->read($cacheId);
-		if ($r) 
-			return unserialize($c->data); 
+		if ($r)
+			return unserialize($c->data);
 		else
 			return null;
-	}	
+	}
 
 	public static function setCache($cacheId, $data)	{
 		$c = new MMDbCache;
@@ -65,9 +65,6 @@ class MMUtils	{
 			$c->data = serialize($data);
 			$c->create();
 		}
-	}	
-	
+	}
+
 }
-
-
-

@@ -2,31 +2,31 @@
 
 namespace mondrakeNG\mm\core;
 
-class MMTimer { 
-  
+class MMTimer {
+
 	var $startTimeSec;
 	var $startTimeuSec;
 	var $startTime;
 	var $stopTimeSec;
-	var $stopTimeuSec;  
+	var $stopTimeuSec;
 	var $stopTime;
-	var $partialTimeSec; 
-	var $partialTimeuSec;  
+	var $partialTimeSec;
+	var $partialTimeuSec;
 	var $partialTime;
 	var $tSec;
-	var $tUSec;  
+	var $tUSec;
 	var $elapsed;
-	 
+
 	public function __construct()  {  }
-  
+
 	public function __clone()  {  }
- 
+
 	public function start()	{
 		list($this->startTimeuSec, $this->startTimeSec) = explode(" ", microtime());
 		$this->startTimeSec = (float) $this->startTimeSec;
 		$this->startTimeuSec = (float) $this->startTimeuSec;
 		$this->startTime = (gmdate('Y-m-d H:i:s', $this->startTimeSec) . strstr($this->startTimeuSec, '.'));
-	} 
+	}
 
 	public function stop()	{
 		list($this->stopTimeuSec, $this->stopTimeSec) = explode(" ", microtime());
