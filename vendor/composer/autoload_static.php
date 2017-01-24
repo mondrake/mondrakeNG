@@ -99,6 +99,27 @@ class ComposerStaticInit0ee04e2345e42ee4d232c9eb1ee93051
     );
 
     public static $prefixesPsr0 = array (
+        'X' => 
+        array (
+            'XML_RPC2' => 
+            array (
+                0 => __DIR__ . '/..' . '/pear/xml_rpc2',
+            ),
+        ),
+        'P' => 
+        array (
+            'PEAR' => 
+            array (
+                0 => __DIR__ . '/..' . '/pear/pear_exception',
+            ),
+        ),
+        'H' => 
+        array (
+            'HTTP_Request2' => 
+            array (
+                0 => __DIR__ . '/..' . '/pear/http_request2',
+            ),
+        ),
         'D' => 
         array (
             'Doctrine\\DBAL\\' => 
@@ -120,12 +141,17 @@ class ComposerStaticInit0ee04e2345e42ee4d232c9eb1ee93051
         ),
     );
 
+    public static $classMap = array (
+        'Net_URL2' => __DIR__ . '/..' . '/pear/net_url2/Net/URL2.php',
+    );
+
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit0ee04e2345e42ee4d232c9eb1ee93051::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit0ee04e2345e42ee4d232c9eb1ee93051::$prefixDirsPsr4;
             $loader->prefixesPsr0 = ComposerStaticInit0ee04e2345e42ee4d232c9eb1ee93051::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit0ee04e2345e42ee4d232c9eb1ee93051::$classMap;
 
         }, null, ClassLoader::class);
     }
