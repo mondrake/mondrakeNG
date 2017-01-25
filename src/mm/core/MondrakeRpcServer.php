@@ -109,8 +109,8 @@ class MondrakeRpcServer {
 			self::$gObj->commit();
 			return self::formatResponse('ackLastUpdate', MMObj::MMOBJ_OK, null, null, $srvRunTime);
 		}
-		catch(Exception $e){
-			throw new XML_RPC2_FaultException($e->getMessage(), $e->getCode());
+		catch(\Exception $e){
+			throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
 		}
     }
 
@@ -131,8 +131,8 @@ class MondrakeRpcServer {
 			$env->updateBalances();
 			return self::formatResponse('flush', MMObj::MMOBJ_OK, null, null, $srvRunTime);
 		}
-		catch(Exception $e){
-			throw new XML_RPC2_FaultException($e->getMessage(), $e->getCode());
+		catch(\Exception $e){
+			throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
 		}
     }
 
@@ -174,8 +174,8 @@ class MondrakeRpcServer {
 			$payloadResponse[lastUpdateId] = $currUpdateId;
 			return self::formatResponse('download', MMObj::MMOBJ_OK, null, $payloadResponse, $srvRunTime);
 		}
-		catch(Exception $e){
-			throw new XML_RPC2_FaultException($e->getMessage(), $e->getCode());
+		catch(\Exception $e){
+			throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
 		}
     }
 
@@ -206,24 +206,22 @@ class MondrakeRpcServer {
 
 			// last update id confirmed by client
 			$client = new MMClient;
-//			$sessionContext = self::$gObj->getSessionContext();
 			$client->read($sessionContext['client']);
 			$client->clientCtl->last_update_id = $cliLastUpdateId;
 			$client->clientCtl->update();
 			$ret = $dbRepl->getReplicationChunk($client->client_type_id, $environment, $replChunk, $cliLastUpdateId, $isComplete, $limit);
-/*$sqlq = new MMSqlStatement;
-$sqlq->read('xxxx');
-$sqlq->sql_text = print_r($replChunk, true);
-//$sqlq->sql_text = "$environment $cliLastUpdateId $limit";
-$sqlq->update();
-throw new exception('test');*/
 			$payloadResponse['download'] = $replChunk;
 			$payloadResponse['lastUpdateId'] = $cliLastUpdateId;
 			$payloadResponse['isComplete'] = $isComplete;
 			return self::formatResponse('download', MMObj::MMOBJ_OK, $diag->get(), $payloadResponse, $srvRunTime);
 		}
-		catch(Exception $e){
-			throw new XML_RPC2_FaultException($e->getMessage(), $e->getCode());
+		catch(\Exception $e){
+			$trace = $e->getTrace();
+      $backtrace = '';
+			foreach ($trace as $n => $msg)	{
+				$backtrace .= "\n$msg[class]$msg[type]$msg[function] $msg[file]:$msg[line]";
+			}
+			throw new \XML_RPC2_FaultException($e->getMessage() . ' ' . $backtrace, $e->getCode());
 		}
     }
 
@@ -260,11 +258,11 @@ $sqlq->read('xxxx');
 $sqlq->sql_text = print_r($payloadResponse, true);
 //$sqlq->sql_text = "$environment $cliLastUpdateId $limit";
 $sqlq->update();
-throw new exception('test');*/
+throw new \exception('test');*/
 			return self::formatResponse('initDownload', MMObj::MMOBJ_OK, null, $payloadResponse, $srvRunTime);
 		}
-		catch(Exception $e){
-			throw new XML_RPC2_FaultException($e->getMessage(), $e->getCode());
+		catch(\Exception $e){
+			throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
 		}
     }
 
@@ -322,8 +320,8 @@ $sqlq->read('xxxx');
 $sqlq->sql_text = print_r($src, true);
 //$sqlq->sql_text = "$environment $cliLastUpdateId $limit";
 $sqlq->update();
-//throw new exception('test');*/
-								if(is_null($res)) throw new Exception("Missing record for master_pk");
+//throw new \exception('test');*/
+								if(is_null($res)) throw new \Exception("Missing record for master_pk");
 								$res = $tgt->synch($src, true);
 								if ($res == 1) {
 									$cmdResponse[syncResponse] = MMObj::MMOBJ_OK;
@@ -347,16 +345,16 @@ $sqlq->update();
 			}
 			return self::formatResponse('uploadDocs', $stat, null, $uploadResponse, $srvRunTime);
 		}
-		catch(Exception $e){
-			throw new XML_RPC2_FaultException($e->getMessage(), $e->getCode());
+		catch(\Exception $e){
+			throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
 //self::$gObj->commit();
-//throw new exception('test');
+//throw new \exception('test');
 			$trace = $e->getTrace();
 			foreach ($trace as $n => $msg)	{
 				$diag->sLog(4, 'backtrace', $n, array('#text'=>"$msg[class]$msg[type]$msg[function] $msg[file]:$msg[line]"));
 			}
 			return self::formatResponse('uploadDocs', MMObj::MMOBJ_ERROR, $diag->get(), null, $srvRunTime);
-//			throw new XML_RPC2_FaultException($e->getMessage(), $e->getCode());
+//			throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
 		}
     }
 
@@ -397,8 +395,8 @@ $sqlq->update();
 			self::$gObj->commit();
 			return self::formatResponse('pkSync', MMObj::MMOBJ_DEBUG, null, $pkSyncResponse, $srvRunTime);;
 		}
-		catch(Exception $e){
-			throw new XML_RPC2_FaultException($e->getMessage(), $e->getCode());
+		catch(\Exception $e){
+			throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
 		}
     }
 
@@ -417,7 +415,7 @@ $sqlq->update();
 			foreach($arr as $upTable)	{
 				$cl = new MMClass;
 				$cl->getClassFromTableName($upTable[tableName]);
-//throw new XML_RPC2_FaultException($cl->mm_class_name . '.php', 0);
+//throw new \XML_RPC2_FaultException($cl->mm_class_name . '.php', 0);
 	//			require_once $cl->mm_class_name . '.php';
 				$tableRowUploadResponse= array();
 				foreach ($upTable[rows] as $ctr => $row)	{
@@ -468,8 +466,8 @@ $sqlq->update();
 			//self::$gObj->commit();
 			return self::formatResponse('upload', MMObj::MMOBJ_DEBUG, null, $uploadResponse, $srvRunTime);
 		}
-		catch(Exception $e){
-			throw new XML_RPC2_FaultException($e->getMessage(), $e->getCode());
+		catch(\Exception $e){
+			throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
 		}
     }
 
@@ -534,7 +532,7 @@ $sqlq->update();
 //			$ulo = new MMUserLogin;
 			$res = self::$gObj->readToken($_SESSION['mmToken']);
 			if(is_null($res))	{
-				throw new Exception("Validation token invalid");
+				throw new \Exception("Validation token invalid");
 			}
 			$user = new MMUSer;
 			$user->read(self::$gObj->user_id);
@@ -544,7 +542,7 @@ $sqlq->update();
 //			self::$gObj->setSessionContext(self::$gObj->user_id, self::$gObj->environment_id, self::$gObj->client_id);
 		}
 		else {
-			throw new Exception("Session non authenticated");
+			throw new \Exception("Session non authenticated");
 		}
     }
 
@@ -617,7 +615,7 @@ $sqlq->read('xxxx');
 $sqlq->sql_text = print_r($resp, true);
 //$sqlq->sql_text = $res;
 $sqlq->update();
-throw new exception('test');*/
+throw new \exception('test');*/
 
 		return $resp;
     }
