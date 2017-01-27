@@ -143,7 +143,8 @@ abstract class MMObj {
         }
         if ($obj['cardinality'] == 'one')    {
             if (!isset($whereClause))    {
-                $tgt->$objName->read($tgt->$obj['parameters'][0]);        // via pk
+                $parm = $obj['parameters'][0];
+                $tgt->$objName->read($tgt->$parm);        // via pk
             }
             else    {
                 $tgt->$objName->readSingle($whereClause);        // via whereClause
