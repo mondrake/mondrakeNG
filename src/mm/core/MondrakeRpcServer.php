@@ -219,7 +219,7 @@ class MondrakeRpcServer {
 			$trace = $e->getTrace();
       $backtrace = '';
 			foreach ($trace as $n => $msg)	{
-				$backtrace .= "\n$msg[class]$msg[type]$msg[function] $msg[file]:$msg[line]";
+				$backtrace .= "\n$msg[class] $msg[type] $msg[function] $msg[file]:$msg[line]\n";
 			}
 			throw new \XML_RPC2_FaultException($e->getMessage() . ' ' . $backtrace, $e->getCode());
 		}
@@ -346,14 +346,18 @@ $sqlq->update();
 			return self::formatResponse('uploadDocs', $stat, null, $uploadResponse, $srvRunTime);
 		}
 		catch(\Exception $e){
-			throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
-//self::$gObj->commit();
-//throw new \exception('test');
+			$trace = $e->getTrace();
+      $backtrace = '';
+			foreach ($trace as $n => $msg)	{
+				$backtrace .= "\n$msg[class] $msg[type] $msg[function] $msg[file]:$msg[line]\n";
+			}
+			throw new \XML_RPC2_FaultException($e->getMessage() . ' ' . $backtrace, $e->getCode());
+/*			throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
 			$trace = $e->getTrace();
 			foreach ($trace as $n => $msg)	{
 				$diag->sLog(4, 'backtrace', $n, array('#text'=>"$msg[class]$msg[type]$msg[function] $msg[file]:$msg[line]"));
 			}
-			return self::formatResponse('uploadDocs', MMObj::MMOBJ_ERROR, $diag->get(), null, $srvRunTime);
+			return self::formatResponse('uploadDocs', MMObj::MMOBJ_ERROR, $diag->get(), null, $srvRunTime);*/
 //			throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
 		}
     }
