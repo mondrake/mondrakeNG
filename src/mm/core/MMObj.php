@@ -14,211 +14,212 @@ abstract class MMObj {
   const MMOBJ_WARNING = 4;
   const MMOBJ_ERROR = 3;
 
-    protected static $dbol = null;
-    protected static $dbObj = array();
-    protected static $childObjs = array();
-    protected $diag = null;
-    protected $className;
+  protected static $dbol = null;
+  protected static $dbObj = array();
+  protected static $childObjs = array();
+  protected $diag = null;
+  protected $className;
 
-    public function __construct() {
-        // dbol
-        if (self::$dbol === NULL)     {
-            $dbolParams = array(
-                'decimalPrecision'  => DB_DECIMALPRECISION,
-                'callbackClass'     => '\\mondrakeNG\\mm\\core\\MMObjDbolCallback',
-                'perfLogging'       => DB_QUERY_PERFORMANCE_LOGGING,
-                'perfThreshold'     => DB_QUERY_PERFORMANCE_THRESHOLD,
-                'user'              => 1,
-                );
-            self::$dbol = new Dbol('MM', $dbolParams);
-        }
-        // diag
-        $this->diag = new MMDiag;
-        // tries to get dbObj from cache
-        $this->className = get_class($this);
-        if (!isset(self::$dbObj[$this->className]))    {
-            if ($this->className <> 'mondrakeNG\\mm\\classes\\MMDbCache')    {
-                $x = MMUtils::getCache("DbolEntry:$this->className");
-                if (is_object($x)) self::$dbObj[$this->className] = clone $x;
-            }
-            else    {
-                $sqlq = "SELECT * FROM #pfx#mm_db_cache where cache_id = 'DbolEntry:MMDbCache'";
-                $res = self::$dbol->query($sqlq, $limit = NULL, $offset = NULL, $sqlId = NULL, $skipPerfLog = TRUE);
-                if ($res) {
-                    self::$dbObj[$this->className] = unserialize($res[0]['data']);
-                }
-            }
-        }
-        // if nor cached, builds dbObj
-        if (!isset(self::$dbObj[$this->className])) {
-            self::$dbObj[$this->className] = new DbolEntry;
-
-            // retrieves table name and audit log level from class<->table_name table in DBMS
-            $xxx = str_replace("\\", "\\\\", $this->className);
-            $sqlq = "SELECT * FROM #pfx#mm_classes where mm_class_name = '$xxx'";
-            $res = self::$dbol->query($sqlq, $limit = NULL, $offset = NULL, $sqlId = NULL, $skipPerfLog = TRUE);
-            if (count($res) == 0)    {
-                $this->diagLog(static::MMOBJ_ERROR, 100, array('#text' => "Class $this->className not found in repository.",), 'MMObj', TRUE);
-            }
-            self::$dbObj[$this->className]->table = $res[0]['db_table_name'];
-            self::$dbObj[$this->className]->tableProperties['auditLogLevel'] = $res[0]['db_table_audit_log_level'];
-            self::$dbObj[$this->className]->tableProperties['listOrder'] = $res[0]['list_order'];
-            self::$dbObj[$this->className]->tableProperties['environmentDependent'] = $res[0]['is_environment_dependent'];
-            self::$dbObj[$this->className]->tableProperties['clientTracking'] = $res[0]['is_client_source_tracked'];
-            self::$dbObj[$this->className]->tableProperties['readBackOnChange'] = $res[0]['is_read_back_on_change'];
-            self::$dbObj[$this->className]->tableProperties['performanceTracking'] = $res[0]['is_performance_tracked'];
-            self::$dbObj[$this->className]->tableProperties['sequencing'] = $res[0]['is_sequenced'];
-
-            DbConnection::fetchAllColumnsProperties('MM', self::$dbObj[$this->className]->table, self::$dbObj[$this->className]);
-
-            self::$dbol->setColumnProperty(self::$dbObj[$this->className], array (
-                'create_by',
-                'create_ts',
-                'update_by',
-                'update_ts',
-                'update_id'),
-                'editable', FALSE);
-
-            MMUtils::setCache("DbolEntry:$this->className", self::$dbObj[$this->className]);
-        }
-        $this->setPKColumns();
-        $this->defineChildObjs();
-        //print_r(self::$childObjs);
-        // sets pk and reads from db if arguments passed
-        $args = func_get_args();
-        if (count($args) > 0) {
-            if (is_array($args[0])) {
-                $args = $args[0];
-            }
-            foreach ($args as $k => $v) {
-                $col = self::$dbObj[$this->className]->PKColumns[$k];
-                $this->$col = $v;
-            }
-        }
+  public function __construct() {
+    // dbol
+    if (self::$dbol === NULL)     {
+      $dbolParams = array(
+        'decimalPrecision'  => DB_DECIMALPRECISION,
+        'callbackClass'     => '\\mondrakeNG\\mm\\core\\MMObjDbolCallback',
+        'perfLogging'       => DB_QUERY_PERFORMANCE_LOGGING,
+        'perfThreshold'     => DB_QUERY_PERFORMANCE_THRESHOLD,
+        'user'              => 1,
+      );
+      self::$dbol = new Dbol('MM', $dbolParams);
     }
+    // diag
+    $this->diag = new MMDiag;
+    // tries to get dbObj from cache
+    $this->className = get_class($this);
+    if (!isset(self::$dbObj[$this->className]))    {
+      if ($this->className <> 'mondrakeNG\\mm\\classes\\MMDbCache')    {
+        $x = MMUtils::getCache("DbolEntry:$this->className");
+        if (is_object($x)) self::$dbObj[$this->className] = clone $x;
+      }
+      else    {
+        $sqlq = "SELECT * FROM #pfx#mm_db_cache where cache_id = 'DbolEntry:MMDbCache'";
+        $res = self::$dbol->query($sqlq, $limit = NULL, $offset = NULL, $sqlId = NULL, $skipPerfLog = TRUE);
+        if ($res) {
+          self::$dbObj[$this->className] = unserialize($res[0]['data']);
+        }
+      }
+    }
+    // if nor cached, builds dbObj
+    if (!isset(self::$dbObj[$this->className])) {
+      self::$dbObj[$this->className] = new DbolEntry;
 
-    public function setPKColumns()     {
+      // retrieves table name and audit log level from class<->table_name table in DBMS
+      $xxx = str_replace("\\", "\\\\", $this->className);
+      $sqlq = "SELECT * FROM #pfx#mm_classes where mm_class_name = '$xxx'";
+      $res = self::$dbol->query($sqlq, $limit = NULL, $offset = NULL, $sqlId = NULL, $skipPerfLog = TRUE);
+      if (count($res) == 0)    {
+        $this->diagLog(static::MMOBJ_ERROR, 100, array('#text' => "Class $this->className not found in repository.",), 'MMObj', TRUE);
+      }
+      self::$dbObj[$this->className]->table = $res[0]['db_table_name'];
+      self::$dbObj[$this->className]->tableProperties['auditLogLevel'] = $res[0]['db_table_audit_log_level'];
+      self::$dbObj[$this->className]->tableProperties['listOrder'] = $res[0]['list_order'];
+      self::$dbObj[$this->className]->tableProperties['environmentDependent'] = $res[0]['is_environment_dependent'];
+      self::$dbObj[$this->className]->tableProperties['clientTracking'] = $res[0]['is_client_source_tracked'];
+      self::$dbObj[$this->className]->tableProperties['readBackOnChange'] = $res[0]['is_read_back_on_change'];
+      self::$dbObj[$this->className]->tableProperties['performanceTracking'] = $res[0]['is_performance_tracked'];
+      self::$dbObj[$this->className]->tableProperties['sequencing'] = $res[0]['is_sequenced'];
+
+      DbConnection::fetchAllColumnsProperties('MM', self::$dbObj[$this->className]->table, self::$dbObj[$this->className]);
+
+      self::$dbol->setColumnProperty(self::$dbObj[$this->className], array (
+        'create_by',
+        'create_ts',
+        'update_by',
+        'update_ts',
+        'update_id'),
+        'editable', FALSE
+      );
+
+      MMUtils::setCache("DbolEntry:$this->className", self::$dbObj[$this->className]);
+    }
+    $this->setPKColumns();
+    $this->defineChildObjs();
+    //print_r(self::$childObjs);
+    // sets pk and reads from db if arguments passed
+    $args = func_get_args();
+    if (count($args) > 0) {
+      if (is_array($args[0])) {
+        $args = $args[0];
+      }
+      foreach ($args as $k => $v) {
+        $col = self::$dbObj[$this->className]->PKColumns[$k];
+        $this->$col = $v;
+      }
+    }
+  }
+
+  public function setPKColumns()     {
 //        return self::$dbol->setPKColumns(self::$dbObj[$this->className], $cols);
-    }
-    public function defineChildObjs()    {
-    }
+  }
+  public function defineChildObjs()    {
+  }
 
-    public function getdbol()    {
-        return self::$dbol;
-    }
+  public function getdbol()    {
+    return self::$dbol;
+  }
 
-    public function getDbObj()    {
-        return self::$dbObj[$this->className];
-    }
+  public function getDbObj()    {
+    return self::$dbObj[$this->className];
+  }
 
-    public function setSessionContext($params) {
-         self::$dbol->setVariables($params);
-    }
+  public function setSessionContext($params) {
+    self::$dbol->setVariables($params);
+  }
 
-    public function getSessionContext($var = NULL) {
-         return self::$dbol->getVariable($var);
-    }
+  public function getSessionContext($var = NULL) {
+    return self::$dbol->getVariable($var);
+  }
 
-    public function setColumnProperty($cols, $prop, $value)     {
-        return self::$dbol->setColumnProperty(self::$dbObj[$this->className], $cols, $prop, $value);
-    }
+  public function setColumnProperty($cols, $prop, $value)     {
+    return self::$dbol->setColumnProperty(self::$dbObj[$this->className], $cols, $prop, $value);
+  }
 
-    public function getColumnProperties()    {
-        return self::$dbol->getColumnProperties(self::$dbObj[$this->className]);
-    }
+  public function getColumnProperties()    {
+    return self::$dbol->getColumnProperties(self::$dbObj[$this->className]);
+  }
 
-    public function compactPKIntoString() {
-        return self::$dbol->compactPKIntoString($this, self::$dbObj[$this->className]);
-    }
+  public function compactPKIntoString() {
+    return self::$dbol->compactPKIntoString($this, self::$dbObj[$this->className]);
+  }
 
-    public function loadChildObjs($tgt, $objName) {
-        $obj = self::$childObjs[$this->className][$objName];
-        $tgt->$objName = new $obj['className'];
-        if (isset($obj['whereClause']))    {
-            $whereClause = $obj['whereClause'];
-            foreach ($obj['parameters'] as $pno => $p)    {
-                $whereClause = str_replace("#$pno#", $tgt->$p, $whereClause);
+  public function loadChildObjs($tgt, $objName) {
+    $obj = self::$childObjs[$this->className][$objName];
+    $tgt->$objName = new $obj['className'];
+    if (isset($obj['whereClause']))    {
+      $whereClause = $obj['whereClause'];
+      foreach ($obj['parameters'] as $pno => $p)    {
+        $whereClause = str_replace("#$pno#", $tgt->$p, $whereClause);
 //print($whereClause);
-            }
-        }
-        if ($obj['cardinality'] == 'one')    {
-            if (!isset($whereClause))    {
-                $parm = $obj['parameters'][0];
-                $tgt->$objName->read($tgt->$parm);        // via pk
-            }
-            else    {
-                $tgt->$objName->readSingle($whereClause);        // via whereClause
-            }
-        }
-        else    {
-            $tgt->$objName = $tgt->$objName->readMulti($whereClause);
-        }
+      }
     }
-
-    public function read() {
-        $args = func_get_args();
-        if (count($args) == 1) {
-            $pk = $args[0];
-        } elseif (count($args) > 1) {
-            foreach ($args as $k => $v) {
-                $col = $this->getDbObj()->PKColumns[$k];
-                $this->$col = $v;
-                $pk = $this->compactPKIntoString();
-            }
-        } else {
-            $pk = $this->compactPKIntoString();
-        }
-        $r = self::$dbol->readSinglePK($this, self::$dbObj[$this->className], $pk);
-        if (!$r) {
-            return null;
-        }
-        if (!empty(self::$childObjs[$this->className]))    {
-            foreach (self::$childObjs[$this->className] as $objName => $obj)    {
-                if ($obj['loading'] == 'onRead')    {
-                    self::loadChildObjs($this, $objName);
-                }
-            }
-        }
-        return $r;
+    if ($obj['cardinality'] == 'one')    {
+      if (!isset($whereClause))    {
+        $parm = $obj['parameters'][0];
+        $tgt->$objName->read($tgt->$parm);        // via pk
+      }
+      else    {
+        $tgt->$objName->readSingle($whereClause);        // via whereClause
+      }
     }
-
-    public function readSingle($whereClause) {
-        $r = self::$dbol->readSingle($this, self::$dbObj[$this->className], $whereClause);
-        if (!$r) {
-            return null;
-        }
-        if (!empty(self::$childObjs[$this->className]))    {
-            foreach (self::$childObjs[$this->className] as $objName => $obj)    {
-                if ($obj['loading'] == 'onRead')    {
-                    self::loadChildObjs($this, $objName);
-                }
-            }
-        }
-        return $r;
+    else    {
+      $tgt->$objName = $tgt->$objName->readMulti($whereClause);
     }
+  }
 
-    public function readMulti($whereClause = NULL, $orderClause = NULL, $limit = NULL, $offset = NULL) {
-        $ret = self::$dbol->readMulti($this, self::$dbObj[$this->className], $whereClause, $orderClause, $limit, $offset);
-        if(!empty($ret) AND !empty(self::$childObjs[$this->className]))    {
-            foreach ($ret as $ctr => $rec)    {
-                foreach (self::$childObjs[$this->className] as $objName => $obj)    {
-                    if ($obj['loading'] == 'onRead')    {
-                        self::loadChildObjs($rec, $objName);
-                    }
-                }
-            }
+  public function read() {
+    $args = func_get_args();
+    if (count($args) == 1) {
+      $pk = $args[0];
+    } elseif (count($args) > 1) {
+      foreach ($args as $k => $v) {
+        $col = $this->getDbObj()->PKColumns[$k];
+        $this->$col = $v;
+        $pk = $this->compactPKIntoString();
+      }
+    } else {
+      $pk = $this->compactPKIntoString();
+    }
+    $r = self::$dbol->readSinglePK($this, self::$dbObj[$this->className], $pk);
+    if (!$r) {
+      return null;
+    }
+    if (!empty(self::$childObjs[$this->className]))    {
+      foreach (self::$childObjs[$this->className] as $objName => $obj)    {
+        if ($obj['loading'] == 'onRead')    {
+          self::loadChildObjs($this, $objName);
         }
-        return $ret;
+      }
     }
+    return $r;
+  }
 
-	public function count($whereClause = NULL) {
-		$ret = self::$dbol->count($this, self::$dbObj[$this->className], $whereClause);
-		return $ret;
-	}
-
-    public function listAll($whereClause = NULL, $limit = NULL, $offset = NULL) {
-        return $this->readMulti($whereClause, self::$dbObj[$this->className]->tableProperties['listOrder'], $limit, $offset);
+  public function readSingle($whereClause) {
+    $r = self::$dbol->readSingle($this, self::$dbObj[$this->className], $whereClause);
+    if (!$r) {
+      return null;
     }
+    if (!empty(self::$childObjs[$this->className]))    {
+      foreach (self::$childObjs[$this->className] as $objName => $obj)    {
+        if ($obj['loading'] == 'onRead')    {
+          self::loadChildObjs($this, $objName);
+        }
+      }
+    }
+    return $r;
+  }
+
+  public function readMulti($whereClause = NULL, $orderClause = NULL, $limit = NULL, $offset = NULL) {
+    $ret = self::$dbol->readMulti($this, self::$dbObj[$this->className], $whereClause, $orderClause, $limit, $offset);
+    if(!empty($ret) AND !empty(self::$childObjs[$this->className]))    {
+      foreach ($ret as $ctr => $rec)    {
+        foreach (self::$childObjs[$this->className] as $objName => $obj)    {
+          if ($obj['loading'] == 'onRead')    {
+            self::loadChildObjs($rec, $objName);
+          }
+        }
+      }
+    }
+    return $ret;
+  }
+
+  public function count($whereClause = NULL) {
+    $ret = self::$dbol->count($this, self::$dbObj[$this->className], $whereClause);
+    return $ret;
+  }
+
+  public function listAll($whereClause = NULL, $limit = NULL, $offset = NULL) {
+    return $this->readMulti($whereClause, self::$dbObj[$this->className]->tableProperties['listOrder'], $limit, $offset);
+  }
 
     public function create() {
         $clientPKMap = func_get_args(0);
