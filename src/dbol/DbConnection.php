@@ -95,19 +95,9 @@ class DbConnection {
       }
     }
 
-    // stores the lists of table columns & types, and
-    // an array with full details by column name
-    $tableColumns = static::$connections[$name]['connection']->query(static::$connections[$name]['connection']->getDatabasePlatform()->getListTableColumnsSQL($tableName))->fetchAll();
-    $res = static::$connections[$name]['dbms']->tableInfo($tableName, $tableColumns);
-
+    // Loops through the columns and build the DBOL entry.
     $j = 0;
     foreach ($columns as $column_name => $column_data) {
-foreach ($res as $cxx) {
-  if ($cxx['name'] === $column_name) {
-    $b = $cxx;
-    break;
-  }
-}
       $dbolE->columns[] = $column_name;
       $dbolE->columnTypes[$column_name] = $column_data->getType()->getName();
 
