@@ -440,7 +440,7 @@ abstract class MMObj {
                                                     '%fieldName' => $a));
                         }
                         break;
-                    case 'timestamp':
+                    case 'datetime':
                         if (!strtotime($this->$a))    {
                             $highErr = static::MMOBJ_ERROR;
                             $this->diagLog(static::MMOBJ_ERROR, 104, array( '#text' => 'The field %fieldName must be a timestamp.',

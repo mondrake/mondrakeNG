@@ -80,34 +80,57 @@ class DbConnection {
    * @return void
    */
   static public function fetchAllColumnsProperties($name, $tableName, $dbolE) {
+    // Get the table details from the DBAL Schema Manager.
+    $schema_manager = static::$connections[$name]['connection']->getSchemaManager();
+    $columns = $schema_manager->listTableColumns($tableName);
+    $indexes = $schema_manager->listTableIndexes($tableName);
+    foreach ($indexes as $index) {
+      if ($index->isPrimary()) {
+        $primary_index_columns = [];
+        foreach ($index->getColumns() as $seq => $column_name) {
+          $primary_index_columns[$column_name] = $column_name;
+        }
+        break;
+
+      }
+    }
+
     // stores the lists of table columns & types, and
     // an array with full details by column name
     $tableColumns = static::$connections[$name]['connection']->query(static::$connections[$name]['connection']->getDatabasePlatform()->getListTableColumnsSQL($tableName))->fetchAll();
     $res = static::$connections[$name]['dbms']->tableInfo($tableName, $tableColumns);
+
     $j = 0;
-    foreach ($res as $a => $b) {
-      $dbolE->columns[] = $b['name'];
-      $dbolE->columnTypes[$b['name']] = $b['dboltype'];
+    foreach ($columns as $column_name => $column_data) {
+foreach ($res as $cxx) {
+  if ($cxx['name'] === $column_name) {
+    $b = $cxx;
+    break;
+  }
+}
+      $dbolE->columns[] = $column_name;
+      $dbolE->columnTypes[$column_name] = $column_data->getType()->getName();
 
       $colDets = array();
       // set seq property
       $colDets['seq'] = $j;
       // set type property
-      $colDets['type'] = $b['dboltype'];
+      $colDets['type'] = $column_data->getType()->getName();
       // set nullable property
-      $colDets['nullable'] = $b['nullable'];
+      $colDets['nullable'] = !$column_data->getNotNull();
       // set length/decimal property
-      if (strstr($b['length'], ',')) {
-        list($colDets['length'], $colDets['decimal']) = explode(",", $b['length']);
+      if (in_array($column_data->getType()->getName(), ['float', 'decimal'])) {
+        $colDets['length'] = $column_data->getPrecision();
+        $colDets['decimal'] = $column_data->getScale();
       }
       else {
-        $colDets['length'] = $b['length'];
+        $colDets['length'] = $column_data->getLength();
       }
       // set default property
-      $colDets['default'] = $b['default'];
+      $colDets['default'] = $column_data->getDefault();
       // set Autoincrement properties
-      if ($b['autoincrement'] == 1) {
-        $dbolE->AIColumns[] = $b['name'];
+      if ($column_data->getAutoincrement() == TRUE) {
+        $dbolE->AIColumns[] = $column_name;
         $colDets['autoIncrement'] = true;
         $colDets['editable'] = false;
       } else {
@@ -115,21 +138,21 @@ class DbConnection {
         $colDets['editable'] = true;
       }
       // set Primary Key properties
-      if ($b['primaryKey']) {
-        $dbolE->PKColumns[] = $b['name'];
+      if (isset($primary_index_columns[$column_name])) {
+        $dbolE->PKColumns[] = $column_name;
         $colDets['primaryKey'] = true;
       } else {
         $colDets['primaryKey'] = false;
       }
       // set Comment
-      if (isset($b['comment'])) {
-        $colDets['comment'] = $b['comment'];
+      if (($comment = $column_data->getComment()) !== NULL) {
+        $colDets['comment'] = $comment;
       }
       // set audit property
       if ($dbolE->tableProperties['auditLogLevel'] > Dbol::DBOL_ROW_AUDIT) {
         $colDets['auditLog'] = true;
       }
-      $dbolE->columnProperties[$b['name']] = $colDets;
+      $dbolE->columnProperties[$column_name] = $colDets;
       $j++;
     }
   }

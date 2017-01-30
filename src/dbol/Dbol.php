@@ -927,7 +927,7 @@ class Dbol {
         }
         // if field changes need be tracked then add to the field changes array
         if ($dbolE->tableProperties['auditLogLevel'] > static::DBOL_ROW_AUDIT and $dbolE->columnProperties[$d]['auditLog']) {
-          if ($dbolE->columnTypes[$d] == 'text' and empty($dbolE->columnProperties[$d]['length'])) {
+          if ($dbolE->columnTypes[$d] == 'text') {
             if (extension_loaded('xdiff')) {
               $diff = xdiff_string_diff($c1, $c2, 0);
               $changesItem = array ($d, $diff, null, 1);
