@@ -46,7 +46,7 @@ class MondrakeRpcServer {
       $trace = $e->getTrace();
       $backtrace = '';
       foreach ($trace as $n => $msg)  {
-        $backtrace .= "\n$msg[class] $msg[type] $msg[function] $msg[file]:$msg[line]\n";
+        $backtrace .= "\n{$msg['class']} {$msg['type']} {$msg['function']} {$msg['file']}:{$msg['line']}\n";
       }
       throw new \XML_RPC2_FaultException($e->getMessage() . ' ' . $backtrace, $e->getCode());
     }
@@ -113,7 +113,7 @@ class MondrakeRpcServer {
       self::$gObj->beginTransaction();
       $clientCtl = new MMClientCtl;
       $sessionContext = self::$gObj->getSessionContext();
-      $clientCtl->read($sessionContext[client]);
+      $clientCtl->read($sessionContext['client']);
       $clientCtl->last_update_id = $updateId;
       $clientCtl->update();
       self::$gObj->commit();
@@ -137,7 +137,7 @@ class MondrakeRpcServer {
       // updates balances
       $env = new MMEnvironment;
       $sessionContext = self::$gObj->getSessionContext();
-      $env->read($sessionContext[environment]);
+      $env->read($sessionContext['environment']);
       $env->updateBalances();
       return self::formatResponse('flush', MMObj::MMOBJ_OK, null, null, $srvRunTime);
     }
@@ -162,7 +162,7 @@ class MondrakeRpcServer {
       // last update id confirmed by client
       $client = new MMClient;
       $sessionContext = self::$gObj->getSessionContext();
-      $client->read($sessionContext[client]);
+      $client->read($sessionContext['client']);
       $lastUpdateId = $client->clientCtl->last_update_id;
 
       // current update id
@@ -176,12 +176,12 @@ class MondrakeRpcServer {
       foreach ($dbTables as $ctr => $repTab)  {
         $cl = new MMClass;
         $cl->getClassFromTableName($repTab->db_table);
-        $res = self::prepareDownload($cl, $sessionContext[environment], $lastUpdateId, $repTab->is_pk_sync_req);
+        $res = self::prepareDownload($cl, $sessionContext['environment'], $lastUpdateId, $repTab->is_pk_sync_req);
         if (!is_null($res)) $downloadResponse[$repTab->db_table] = $res;
       }
 
-      $payloadResponse[download] = $downloadResponse;
-      $payloadResponse[lastUpdateId] = $currUpdateId;
+      $payloadResponse['download'] = $downloadResponse;
+      $payloadResponse['lastUpdateId'] = $currUpdateId;
       return self::formatResponse('download', MMObj::MMOBJ_OK, null, $payloadResponse, $srvRunTime);
     }
     catch(\Exception $e){
@@ -229,7 +229,7 @@ class MondrakeRpcServer {
       $trace = $e->getTrace();
       $backtrace = '';
       foreach ($trace as $n => $msg)  {
-        $backtrace .= "\n$msg[class] $msg[type] $msg[function] $msg[file]:$msg[line]\n";
+        $backtrace .= "\n{$msg['class']} {$msg['type']} {$msg['function']} {$msg['file']}:{$msg['line']}\n";
       }
       throw new \XML_RPC2_FaultException($e->getMessage() . ' ' . $backtrace, $e->getCode());
     }
@@ -257,7 +257,7 @@ class MondrakeRpcServer {
       // last update id confirmed by client
       $client = new MMClient;
       $sessionContext = self::$gObj->getSessionContext();
-      $client->read($sessionContext[client]);
+      $client->read($sessionContext['client']);
       $client->clientCtl->last_update_id = $cliLastUpdateId;
       $client->clientCtl->update();
       $ret = $dbRepl->getTableInitChunk($dbTable, $client->client_id, $environment, $replChunk, $nextSeq, $isComplete, $limit);
@@ -293,34 +293,34 @@ throw new \exception('test');*/
       $stat = MMObj::MMOBJ_DEBUG;
       $uploadResponse = array();
       foreach ($arr as $cmd)  {
-        $validationReturn = self::validateDocArrayFromClient($cmd[doc]);
+        $validationReturn = self::validateDocArrayFromClient($cmd['doc']);
         $cmdResponse = array();
-        $cmdResponse[syncCommand] = $cmd[syncCommand];
-        $cmdResponse[syncResponse] = MMObj::MMOBJ_ERROR;
+        $cmdResponse['syncCommand'] = $cmd['syncCommand'];
+        $cmdResponse['syncResponse'] = MMObj::MMOBJ_ERROR;
         if ($validationReturn)  {
           $src = new AXDoc;
           self::$gObj->beginTransaction();
-          switch ($cmd[syncCommand])  {
+          switch ($cmd['syncCommand'])  {
             case 'delete':
-              $src->read($cmd[doc][master_pk]);
+              $src->read($cmd['doc']['master_pk']);
               if (!is_null($src->doc_id)) {
-                $cmdResponse[masterPK] = $src->primaryKeyString;
-                $cmdResponse[clientPK] = $cmd[doc][client_pk];
+                $cmdResponse['masterPK'] = $src->primaryKeyString;
+                $cmdResponse['clientPK'] = $cmd['doc']['client_pk'];
                 $res = $src->delete(true);
-                if ($res == 1) $cmdResponse[syncResponse] = MMObj::MMOBJ_OK;
+                if ($res == 1) $cmdResponse['syncResponse'] = MMObj::MMOBJ_OK;
               }
               break;
             case 'replace':
-              $src->loadFromArray($cmd[doc], true);
+              $src->loadFromArray($cmd['doc'], true);
               if(is_null($src->doc_id)) { // brand new insert
                 $res = $src->create(true);
-                $cmdResponse[masterPK] = $src->primaryKeyString;
-                $cmdResponse[clientPK] = $src->client_pk;
-                $cmdResponse[updateId] = $src->update_id;
+                $cmdResponse['masterPK'] = $src->primaryKeyString;
+                $cmdResponse['clientPK'] = $src->client_pk;
+                $cmdResponse['updateId'] = $src->update_id;
                 if ($res)
-                  $cmdResponse[syncResponse] = MMObj::MMOBJ_OK;
+                  $cmdResponse['syncResponse'] = MMObj::MMOBJ_OK;
                 else
-                  $cmdResponse[syncResponse] = MMObj::MMOBJ_WARNING;
+                  $cmdResponse['syncResponse'] = MMObj::MMOBJ_WARNING;
               }
               else  {           // update
                 $tgt = new AXDoc;
@@ -334,10 +334,10 @@ $sqlq->update();
                 if(is_null($res)) throw new \Exception("Missing record for master_pk");
                 $res = $tgt->synch($src, true);
                 if ($res == 1) {
-                  $cmdResponse[syncResponse] = MMObj::MMOBJ_OK;
-                  $cmdResponse[masterPK] = $tgt->primaryKeyString;
-                  $cmdResponse[clientPK] = $src->client_pk;
-                  $cmdResponse[updateId] = $tgt->update_id;
+                  $cmdResponse['syncResponse'] = MMObj::MMOBJ_OK;
+                  $cmdResponse['masterPK'] = $tgt->primaryKeyString;
+                  $cmdResponse['clientPK'] = $src->client_pk;
+                  $cmdResponse['updateId'] = $tgt->update_id;
                 }
               }
               break;
@@ -345,10 +345,10 @@ $sqlq->update();
           self::$gObj->commit();
         }
         else {
-          $cmdResponse[masterPK] = $cmd[doc][master_pk];
-          $cmdResponse[clientPK] = $cmd[doc][doc_id];
+          $cmdResponse['masterPK'] = $cmd['doc']['master_pk'];
+          $cmdResponse['clientPK'] = $cmd['doc']['doc_id'];
         }
-        if ($cmdResponse[syncResponse] <= MMObj::MMOBJ_WARNING) {
+        if ($cmdResponse['syncResponse'] <= MMObj::MMOBJ_WARNING) {
           $stat = MMObj::MMOBJ_WARNING;
         }
         $uploadResponse[] = $cmdResponse;
@@ -359,13 +359,13 @@ $sqlq->update();
       $trace = $e->getTrace();
       $backtrace = '';
       foreach ($trace as $n => $msg)  {
-        $backtrace .= "\n$msg[class] $msg[type] $msg[function] $msg[file]:$msg[line]\n";
+        $backtrace .= "\n{$msg['class']} {$msg['type']} {$msg['function']} {$msg['file']}:{$msg['line']}\n";
       }
       throw new \XML_RPC2_FaultException($e->getMessage() . ' ' . $backtrace, $e->getCode());
 /*      throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
       $trace = $e->getTrace();
       foreach ($trace as $n => $msg)  {
-        $diag->sLog(4, 'backtrace', $n, array('#text'=>"$msg[class]$msg[type]$msg[function] $msg[file]:$msg[line]"));
+        $diag->sLog(4, 'backtrace', $n, array('#text'=>"$msg['class']$msg['type']$msg['function'] $msg['file']:$msg['line']"));
       }
       return self::formatResponse('uploadDocs', MMObj::MMOBJ_ERROR, $diag->get(), null, $srvRunTime);*/
 //      throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
@@ -394,14 +394,14 @@ $sqlq->update();
         foreach ($det as $cmd)  {
           // process input
           $DbRepl = new MMDBReplication(self::$gObj->getdbol());
-          $DbRepl->setPKMap($tab, $cmd[master_pk], $cmd[client_pk], true);
+          $DbRepl->setPKMap($tab, $cmd['master_pk'], $cmd['client_pk'], true);
           // output
           $syncResponse = array();
-          $syncResponse[master_pk] = $cmd[master_pk];
-          $syncResponse[client_pk] = $cmd[client_pk];
+          $syncResponse['master_pk'] = $cmd['master_pk'];
+          $syncResponse['client_pk'] = $cmd['client_pk'];
           $obj = new $cl->mm_class_name;
-          $obj->read($cmd[master_pk]);
-          $syncResponse[update_id] = $obj->update_id;
+          $obj->read($cmd['master_pk']);
+          $syncResponse['update_id'] = $obj->update_id;
           $tabResponse[] = $syncResponse;
         }
         $pkSyncResponse[$tab] = $tabResponse;
@@ -428,13 +428,13 @@ $sqlq->update();
       $uploadResponse = array();
       foreach($arr as $upTable) {
         $cl = new MMClass;
-        $cl->getClassFromTableName($upTable[tableName]);
+        $cl->getClassFromTableName($upTable['tableName']);
 //throw new \XML_RPC2_FaultException($cl->mm_class_name . '.php', 0);
   //      require_once $cl->mm_class_name . '.php';
         $tableRowUploadResponse= array();
-        foreach ($upTable[rows] as $ctr => $row)  {
-          $tableRowCmd = $row[syncCommand];
-          $tableRowCols = $row[cols];
+        foreach ($upTable['rows'] as $ctr => $row)  {
+          $tableRowCmd = $row['syncCommand'];
+          $tableRowCols = $row['cols'];
           $cmdResponse = array();
 
           $src = new $cl->mm_class_name;
@@ -443,14 +443,14 @@ $sqlq->update();
           $tgt = new $cl->mm_class_name;
           $tgt->read($src->primaryKeyString);
 
-          $cmdResponse[primaryKey] = $src->primaryKeyString;
-          $cmdResponse[syncCommand] = $row[syncCommand];
-          $cmdResponse[syncResponse] = 0;
-          switch ($row[syncCommand])  {
+          $cmdResponse['primaryKey'] = $src->primaryKeyString;
+          $cmdResponse['syncCommand'] = $row['syncCommand'];
+          $cmdResponse['syncResponse'] = 0;
+          switch ($row['syncCommand'])  {
             case 'delete':
               if (!is_null($tgt->primaryKeyString)) {
                 $res = $tgt->delete();
-                if ($res == 1) $cmdResponse[syncResponse] = 1;
+                if ($res == 1) $cmdResponse['syncResponse'] = 1;
                 // else?
               }
               break;
@@ -458,23 +458,23 @@ $sqlq->update();
               if (is_null($tgt->primaryKeyString)) {
                 // new row to be created
                 $res = $src->create();
-                if ($res == 1) $cmdResponse[syncResponse] = 1;
+                if ($res == 1) $cmdResponse['syncResponse'] = 1;
                 // else?
-                $cmdResponse[updateId] = $src->update_id;
+                $cmdResponse['updateId'] = $src->update_id;
               }
               else  {
                 // existing row to be synched
                 $tgt->synch($src);
                 $res = $tgt->update();
-                if ($res == 1) $cmdResponse[syncResponse] = 1;
+                if ($res == 1) $cmdResponse['syncResponse'] = 1;
                 // else?
-                $cmdResponse[updateId] = $tgt->update_id;
+                $cmdResponse['updateId'] = $tgt->update_id;
               }
               break;
           }
           $tableRowUploadResponse[$ctr] = $cmdResponse;
         }
-        $uploadResponse[$upTable[tableName]] = $tableRowUploadResponse;
+        $uploadResponse[$upTable['tableName']] = $tableRowUploadResponse;
       }
 
       //self::$gObj->commit();
@@ -489,45 +489,45 @@ $sqlq->update();
     // XXX
     private static function validateDocArrayFromClient($doc) {
     // manage transforms at doc level
-    if ($doc[reco_group_id] == 0)
-      $doc[reco_group_id] = null;
-    if ($doc[reco_yr] == 0)
-      $doc[reco_yr] = null;
-    if ($doc[reco_nbr] == 0)
-      $doc[reco_nbr] = null;
-    if ($doc[is_reco_closed])
-      $doc[is_reco_closed] = 1;
+    if ($doc['reco_group_id'] == 0)
+      $doc['reco_group_id'] = null;
+    if ($doc['reco_yr'] == 0)
+      $doc['reco_yr'] = null;
+    if ($doc['reco_nbr'] == 0)
+      $doc['reco_nbr'] = null;
+    if ($doc['is_reco_closed'])
+      $doc['is_reco_closed'] = 1;
     else
-      $doc[is_reco_closed] = 0;
-    if ($doc[portfolio_id] == 0)
-      $doc[portfolio_id] = null;
+      $doc['is_reco_closed'] = 0;
+    if ($doc['portfolio_id'] == 0)
+      $doc['portfolio_id'] = null;
 
     // transforms at docItem level
-    foreach ($doc[docItems] as $itm)  {
-      if ($itm[is_doc_item_validated])
-        $itm[is_doc_item_validated] = 1;
+    foreach ($doc['docItems'] as $itm)  {
+      if ($itm['is_doc_item_validated'])
+        $itm['is_doc_item_validated'] = 1;
       else
-        $itm[is_doc_item_validated] = 0;
-      if ($itm[reco_yr] == 0)
-        $itm[reco_yr] = null;
-      if ($itm[reco_nbr] == 0)
-        $itm[reco_nbr] = null;
-      if ($itm[reco_doc_id] == 0)
-        $itm[reco_doc_id] = null;
-      if ($itm[portfolio_id] == 0)
-        $itm[portfolio_id] = null;
-      if ($itm[portfolio_item_id] == 0)
-        $itm[portfolio_item_id] = null;
-      if (!empty($itm[p_doc_item_id]))  {
-        if (!$itm[_map_p_doc_item_id])  {
+        $itm['is_doc_item_validated'] = 0;
+      if ($itm['reco_yr'] == 0)
+        $itm['reco_yr'] = null;
+      if ($itm['reco_nbr'] == 0)
+        $itm['reco_nbr'] = null;
+      if ($itm['reco_doc_id'] == 0)
+        $itm['reco_doc_id'] = null;
+      if ($itm['portfolio_id'] == 0)
+        $itm['portfolio_id'] = null;
+      if ($itm['portfolio_item_id'] == 0)
+        $itm['portfolio_item_id'] = null;
+      if (!empty($itm['p_doc_item_id']))  {
+        if (!$itm['_map_p_doc_item_id'])  {
           $DbRepl = new MMDBReplication(self::$gObj->getdbol());
-          $masterPk = $DbRepl->getMasterPK('ax_doc_items', $itm[p_doc_item_id]);  // TODO: obj related
+          $masterPk = $DbRepl->getMasterPK('ax_doc_items', $itm['p_doc_item_id']);  // TODO: obj related
           if(is_null($masterPk))  { // map for master not existing
             return FALSE;
           }
           else  {
-            $itm[p_doc_item_id] = $masterPk;
-            $itm[_map_p_doc_item_id] = TRUE;
+            $itm['p_doc_item_id'] = $masterPk;
+            $itm['_map_p_doc_item_id'] = TRUE;
           }
         }
       }
@@ -581,7 +581,7 @@ $sqlq->update();
     // loops the rows
     foreach ($res as $ctr => $row)  {
       // determines primary key
-      $cmdResponse[masterPK] = $row->primaryKeyString;
+      $cmdResponse['masterPK'] = $row->primaryKeyString;
       // if pk mapping required, checks and feeds if it exists otherwise prepares pk map
       if ($isPKMappingReq)  {
         $DbRepl = new MMDBReplication(self::$gObj->dbol);
@@ -589,17 +589,17 @@ $sqlq->update();
         if(is_null($clientPk))  { // creates pk map for client
           $DbRepl->setPKMap($src->getDbObj()->dbTable, $row->primaryKeyString, null, false);
         }
-        $cmdResponse[clientPK] = $clientPk;
+        $cmdResponse['clientPK'] = $clientPk;
       }
-      $cmdResponse[syncRequest] = 'replace';
-      $cmdResponse[columns] = array();
+      $cmdResponse['syncRequest'] = 'replace';
+      $cmdResponse['columns'] = array();
       // loops the columns
       foreach($src->getDbColumnProperties() as $c => $d)  {
-        $cmdResponse[columns][$c] = $row->$c;
+        $cmdResponse['columns'][$c] = $row->$c;
       }
       $tableRowDownloadResponse[$ctr] = $cmdResponse;
     }
-    $tableDownloadResponse[rows] = $tableRowDownloadResponse;
+    $tableDownloadResponse['rows'] = $tableRowDownloadResponse;
     return $tableDownloadResponse;
     }
 */
@@ -609,19 +609,19 @@ $sqlq->update();
     $resp = array();
 
     $r = array();
-    $r[method] = $methodInvoked;
-    $r[status] = $methoodResponseStatus;
-    $r[messages] = $methodResponseMsgs;
+    $r['method'] = $methodInvoked;
+    $r['status'] = $methoodResponseStatus;
+    $r['messages'] = $methodResponseMsgs;
     if (!is_null($repeatTot)) {
-      $r[segments] = $repeatTot;
+      $r['segments'] = $repeatTot;
     }
     if (!is_null($repeatCurr))  {
-      $r[currentSegment] = $repeatCurr;
+      $r['currentSegment'] = $repeatCurr;
     }
-    $r[payload] = $methodResponsePayload;
+    $r['payload'] = $methodResponsePayload;
 
     $runTime->stop();
-    $r[runTime] = $runTime->elapsed;
+    $r['runTime'] = $runTime->elapsed;
 
     $resp[] = $r;
 /*$sqlq = new MMSqlStatement;
