@@ -40,7 +40,7 @@ class MondrakeRpcServer {
     try {
       $srvRunTime = new MMTimer;
       $srvRunTime->start();
-      return self::formatResponse('setLink', MMObj::MMOBJ_OK, null, null, $srvRunTime);
+      return self::formatResponse('setLink', MMObj::MMOBJ_OK, '', '', $srvRunTime);
     }
     catch(\Exception $e){
       $trace = $e->getTrace();
