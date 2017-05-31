@@ -30,6 +30,7 @@ class ComposerStaticInit0ee04e2345e42ee4d232c9eb1ee93051
         'P' => 
         array (
             'Psr\\Log\\' => 8,
+            'Psr\\Container\\' => 14,
         ),
         'D' => 
         array (
@@ -83,6 +84,10 @@ class ComposerStaticInit0ee04e2345e42ee4d232c9eb1ee93051
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
+        ),
+        'Psr\\Container\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/container/src',
         ),
         'Doctrine\\Common\\Cache\\' => 
         array (
