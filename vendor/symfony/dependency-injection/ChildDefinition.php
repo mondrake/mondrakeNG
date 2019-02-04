@@ -30,10 +30,11 @@ class ChildDefinition extends Definition
     public function __construct($parent)
     {
         $this->parent = $parent;
+        $this->setPrivate(false);
     }
 
     /**
-     * Returns the Definition being decorated.
+     * Returns the Definition to inherit from.
      *
      * @return string
      */
@@ -43,7 +44,7 @@ class ChildDefinition extends Definition
     }
 
     /**
-     * Sets the Definition being decorated.
+     * Sets the Definition to inherit from.
      *
      * @param string $parent
      *
@@ -62,7 +63,7 @@ class ChildDefinition extends Definition
      * If replaceArgument() has been used to replace an argument, this method
      * will return the replacement value.
      *
-     * @param int $index
+     * @param int|string $index
      *
      * @return mixed The argument value
      *
@@ -74,13 +75,7 @@ class ChildDefinition extends Definition
             return $this->arguments['index_'.$index];
         }
 
-        $lastIndex = count(array_filter(array_keys($this->arguments), 'is_int')) - 1;
-
-        if ($index < 0 || $index > $lastIndex) {
-            throw new OutOfBoundsException(sprintf('The index "%d" is not in the range [0, %d].', $index, $lastIndex));
-        }
-
-        return $this->arguments[$index];
+        return parent::getArgument($index);
     }
 
     /**
@@ -91,8 +86,8 @@ class ChildDefinition extends Definition
      * certain conventions when you want to overwrite the arguments of the
      * parent definition, otherwise your arguments will only be appended.
      *
-     * @param int   $index
-     * @param mixed $value
+     * @param int|string $index
+     * @param mixed      $value
      *
      * @return self the current instance
      *
@@ -100,12 +95,12 @@ class ChildDefinition extends Definition
      */
     public function replaceArgument($index, $value)
     {
-        if (is_int($index)) {
+        if (\is_int($index)) {
             $this->arguments['index_'.$index] = $value;
         } elseif (0 === strpos($index, '$')) {
             $this->arguments[$index] = $value;
         } else {
-            throw new InvalidArgumentException('$index must be an integer.');
+            throw new InvalidArgumentException('The argument must be an existing index or the name of a constructor\'s parameter.');
         }
 
         return $this;

@@ -1,6 +1,22 @@
 CHANGELOG
 =========
 
+3.4.0
+-----
+
+ * moved the `ExtensionCompilerPass` to before-optimization passes with priority -1000
+ * deprecated "public-by-default" definitions and aliases, the new default will be "private" in 4.0
+ * added `EnvVarProcessorInterface` and corresponding "container.env_var_processor" tag for processing env vars
+ * added support for ignore-on-uninitialized references
+ * deprecated service auto-registration while autowiring
+ * deprecated the ability to check for the initialization of a private service with the `Container::initialized()` method
+ * deprecated support for top-level anonymous services in XML
+ * deprecated case insensitivity of parameter names
+ * deprecated the `ResolveDefinitionTemplatesPass` class in favor of `ResolveChildDefinitionsPass`
+ * added `TaggedIteratorArgument` with YAML (`!tagged foo`) and XML (`<service type="tagged"/>`) support
+ * deprecated `AutowireExceptionPass` and `AutowirePass::getAutowiringExceptions()`, use `Definition::addError()` and the `DefinitionErrorExceptionPass` instead
+
+
 3.3.0
 -----
 
@@ -20,7 +36,6 @@ CHANGELOG
  * added support for omitting the factory class name in a service definition if the definition class is set
  * deprecated case insensitivity of service identifiers
  * added "iterator" argument type for lazy iteration over a set of values and services
- * added "closure-proxy" argument type for turning services' methods into lazy callables
  * added file-wide configurable defaults for service attributes "public", "tags",
    "autowire" and "autoconfigure"
  * made the "class" attribute optional, using the "id" as fallback
