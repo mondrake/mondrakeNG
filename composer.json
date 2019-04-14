@@ -8,7 +8,8 @@
         "symfony/dependency-injection": "^3.0",
         "symfony/http-kernel": "^3.0",
         "symfony/stopwatch": "^3.1",
-        "pear/XML_RPC2": "^1.1"
+        "pear/xml_rpc2": "^1.1",
+        "pear/pear": "^1.10"
     },
     "autoload": {
         "psr-4": {"mondrakeNG\\": "src/"}
