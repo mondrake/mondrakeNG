@@ -422,7 +422,6 @@ abstract class MMObj {
                         break;
                     case 'date':
                         $comp = preg_split("/[\s\-:\.\/]+/", $this->$a);
-print_r([$this->$a, $comp]);
                         if (count($comp) == 3)    {
                             if (is_numeric($comp[0]) and is_numeric($comp[1]) and is_numeric($comp[2]))
                                 if (checkdate($comp[1], $comp[2], $comp[0]))    {
