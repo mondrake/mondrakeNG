@@ -186,8 +186,10 @@ class XML_RPC2_Backend_Php_Request
      */
     public static function createFromDecode($simpleXML) 
     {
+error_log(var_export($simpleXML, true));
         $methodName = (string) $simpleXML->methodName;
         $params = array();
+error_log(var_export($simpleXML->params, true));
         foreach ($simpleXML->params->param as $param) {
 error_log(var_export($param->value, true));
             foreach ($param->value as $value) {
