@@ -118,7 +118,6 @@ class XML_RPC2_Backend_Php_Server extends XML_RPC2_Server
             $request = @simplexml_load_string($this->input->readRequest());
             // TODO : do not use exception but a XMLRPC error !
             if (!is_object($request)) throw new XML_RPC2_FaultException('Unable to parse request XML', 0);
-error_log(var_export($request, true));
             $request = XML_RPC2_Backend_Php_Request::createFromDecode($request);  
             $methodName = $request->getMethodName();
             $arguments = $request->getParameters();
