@@ -128,6 +128,7 @@ class XML_RPC2_Backend_Php_Server extends XML_RPC2_Server
                     return (XML_RPC2_Backend_Php_Response::encodeFault(-32601, 'server error. requested method not found'));
                 }
                 if (!($method->matchesSignature($methodName, $arguments))) {
+error_log(var_export([$methodName, $arguments], true));
                     return (XML_RPC2_Backend_Php_Response::encodeFault(-32602, 'server error. invalid method parameters'));
                 }
             }
