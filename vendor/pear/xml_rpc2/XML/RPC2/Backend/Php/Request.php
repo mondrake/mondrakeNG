@@ -188,12 +188,9 @@ class XML_RPC2_Backend_Php_Request
     {
         $methodName = (string) $simpleXML->methodName;
         $params = array();
-error_log(var_export((array) $simpleXML->params, true));
-error_log(var_export((array) $simpleXML->params->param, true));
+error_log(var_export( XML_RPC2_Backend_Php_Value::createFromDecode($simpleXML->params->param)->getNativeValue(), true));
         foreach ($simpleXML->params->param as $param) {
-error_log(var_export($param->value, true));
             foreach ($param->value as $value) {
-error_log(var_export($value, true));
                 $params[] = XML_RPC2_Backend_Php_Value::createFromDecode($value)->getNativeValue();
             }
         }
