@@ -25,8 +25,8 @@ use mondrakeNG\mm\classes\MMEnvironment;
 use mondrakeNG\mm\classes\MMUserLogin;
 use mondrakeNG\mm\classes\MMDbReplicaTable;
 use mondrakeNG\mm\classes\AXPortfolioDailyVal;
+use PhpXmlRpc\Encoder;
 use PhpXmlRpc\Response;
-
 
 class MondrakeRpcServer {
 
@@ -632,6 +632,7 @@ $sqlq->sql_text = print_r($resp, true);
 $sqlq->update();
 throw new \exception('test');*/
 
-    return $resp;
+    //return $resp;  
+    return new (Encoder())->encode($resp);
     }
 }
