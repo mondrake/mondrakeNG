@@ -23,6 +23,8 @@ use Symfony\Component\Config\Resource\ResourceInterface;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\Argument\RewindableGenerator;
 use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
+use Symfony\Component\DependencyInjection\Argument\ServiceLocator;
+use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Compiler\Compiler;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
@@ -39,7 +41,6 @@ use Symfony\Component\DependencyInjection\LazyProxy\Instantiator\RealServiceInst
 use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBag;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\ExpressionLanguage\ExpressionFunctionProviderInterface;
 
@@ -122,6 +123,8 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
     private $autoconfiguredInstanceof = [];
 
     private $removedIds = [];
+
+    private $removedBindingIds = [];
 
     private static $internalTypes = [
         'int' => true,
@@ -324,35 +327,16 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
     }
 
     /**
-     * Adds the given class hierarchy as resources.
-     *
-     * @return $this
-     *
-     * @deprecated since version 3.3, to be removed in 4.0. Use addObjectResource() or getReflectionClass() instead.
-     */
-    public function addClassResource(\ReflectionClass $class)
-    {
-        @trigger_error('The '.__METHOD__.'() method is deprecated since Symfony 3.3 and will be removed in 4.0. Use the addObjectResource() or the getReflectionClass() method instead.', E_USER_DEPRECATED);
-
-        return $this->addObjectResource($class->name);
-    }
-
-    /**
      * Retrieves the requested reflection class and registers it for resource tracking.
-     *
-     * @param string $class
-     * @param bool   $throw
-     *
-     * @return \ReflectionClass|null
      *
      * @throws \ReflectionException when a parent class/interface/trait is not found and $throw is true
      *
      * @final
      */
-    public function getReflectionClass($class, $throw = true)
+    public function getReflectionClass(?string $class, bool $throw = true): ?\ReflectionClass
     {
         if (!$class = $this->getParameterBag()->resolveValue($class)) {
-            return;
+            return null;
         }
 
         if (isset(self::$internalTypes[$class])) {
@@ -404,7 +388,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      *
      * @final
      */
-    public function fileExists($path, $trackContents = true)
+    public function fileExists(string $path, $trackContents = true): bool
     {
         $exists = file_exists($path);
 
@@ -468,21 +452,8 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      *
      * @return $this
      */
-    public function addCompilerPass(CompilerPassInterface $pass, $type = PassConfig::TYPE_BEFORE_OPTIMIZATION/*, int $priority = 0*/)
+    public function addCompilerPass(CompilerPassInterface $pass, $type = PassConfig::TYPE_BEFORE_OPTIMIZATION, int $priority = 0)
     {
-        if (\func_num_args() >= 3) {
-            $priority = func_get_arg(2);
-        } else {
-            if (__CLASS__ !== \get_class($this)) {
-                $r = new \ReflectionMethod($this, __FUNCTION__);
-                if (__CLASS__ !== $r->getDeclaringClass()->getName()) {
-                    @trigger_error(sprintf('Method %s() will have a third `int $priority = 0` argument in version 4.0. Not defining it is deprecated since Symfony 3.2.', __METHOD__), E_USER_DEPRECATED);
-                }
-            }
-
-            $priority = 0;
-        }
-
         $this->getCompiler()->addPass($pass, $type, $priority);
 
         $this->addObjectResource($pass);
@@ -524,7 +495,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      */
     public function set($id, $service)
     {
-        $id = $this->normalizeId($id);
+        $id = (string) $id;
 
         if ($this->isCompiled() && (isset($this->definitions[$id]) && !$this->definitions[$id]->isSynthetic())) {
             // setting a synthetic service on a compiled container is alright
@@ -543,7 +514,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      */
     public function removeDefinition($id)
     {
-        if (isset($this->definitions[$id = $this->normalizeId($id)])) {
+        if (isset($this->definitions[$id = (string) $id])) {
             unset($this->definitions[$id]);
             $this->removedIds[$id] = true;
         }
@@ -558,7 +529,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      */
     public function has($id)
     {
-        $id = $this->normalizeId($id);
+        $id = (string) $id;
 
         return isset($this->definitions[$id]) || isset($this->aliasDefinitions[$id]) || parent::has($id);
     }
@@ -580,8 +551,8 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      */
     public function get($id, $invalidBehavior = ContainerInterface::EXCEPTION_ON_INVALID_REFERENCE)
     {
-        if ($this->isCompiled() && isset($this->removedIds[$id = $this->normalizeId($id)])) {
-            @trigger_error(sprintf('Fetching the "%s" private service or alias is deprecated since Symfony 3.4 and will fail in 4.0. Make it public instead.', $id), E_USER_DEPRECATED);
+        if ($this->isCompiled() && isset($this->removedIds[$id = (string) $id]) && ContainerInterface::EXCEPTION_ON_INVALID_REFERENCE >= $invalidBehavior) {
+            return parent::get($id);
         }
 
         return $this->doGet($id, $invalidBehavior);
@@ -589,8 +560,6 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
 
     private function doGet($id, $invalidBehavior = ContainerInterface::EXCEPTION_ON_INVALID_REFERENCE, array &$inlineServices = null, $isConstructorArgument = false)
     {
-        $id = $this->normalizeId($id);
-
         if (isset($inlineServices[$id])) {
             return $inlineServices[$id];
         }
@@ -618,11 +587,15 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
         try {
             $definition = $this->getDefinition($id);
         } catch (ServiceNotFoundException $e) {
-            if (ContainerInterface::EXCEPTION_ON_INVALID_REFERENCE !== $invalidBehavior) {
+            if (ContainerInterface::EXCEPTION_ON_INVALID_REFERENCE < $invalidBehavior) {
                 return;
             }
 
             throw $e;
+        }
+
+        if ($e = $definition->getErrors()) {
+            throw new RuntimeException(reset($e));
         }
 
         if ($isConstructorArgument) {
@@ -759,19 +732,8 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      *                                     Set to "true" when you want to use the current ContainerBuilder
      *                                     directly, keep to "false" when the container is dumped instead.
      */
-    public function compile(/*$resolveEnvPlaceholders = false*/)
+    public function compile(bool $resolveEnvPlaceholders = false)
     {
-        if (1 <= \func_num_args()) {
-            $resolveEnvPlaceholders = func_get_arg(0);
-        } else {
-            if (__CLASS__ !== static::class) {
-                $r = new \ReflectionMethod($this, __FUNCTION__);
-                if (__CLASS__ !== $r->getDeclaringClass()->getName() && (1 > $r->getNumberOfParameters() || 'resolveEnvPlaceholders' !== $r->getParameters()[0]->name)) {
-                    @trigger_error(sprintf('The %s::compile() method expects a first "$resolveEnvPlaceholders" argument since Symfony 3.3. It will be made mandatory in 4.0.', static::class), E_USER_DEPRECATED);
-                }
-            }
-            $resolveEnvPlaceholders = false;
-        }
         $compiler = $this->getCompiler();
 
         if ($this->trackResources) {
@@ -864,10 +826,14 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      */
     public function setAlias($alias, $id)
     {
-        $alias = $this->normalizeId($alias);
+        $alias = (string) $alias;
+
+        if ('' === $alias || '\\' === $alias[-1] || \strlen($alias) !== strcspn($alias, "\0\r\n'")) {
+            throw new InvalidArgumentException(sprintf('Invalid alias id: "%s"', $alias));
+        }
 
         if (\is_string($id)) {
-            $id = new Alias($this->normalizeId($id));
+            $id = new Alias($id);
         } elseif (!$id instanceof Alias) {
             throw new InvalidArgumentException('$id must be a string, or an Alias object.');
         }
@@ -888,7 +854,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      */
     public function removeAlias($alias)
     {
-        if (isset($this->aliasDefinitions[$alias = $this->normalizeId($alias)])) {
+        if (isset($this->aliasDefinitions[$alias = (string) $alias])) {
             unset($this->aliasDefinitions[$alias]);
             $this->removedIds[$alias] = true;
         }
@@ -903,7 +869,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      */
     public function hasAlias($id)
     {
-        return isset($this->aliasDefinitions[$this->normalizeId($id)]);
+        return isset($this->aliasDefinitions[$id = (string) $id]);
     }
 
     /**
@@ -927,7 +893,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      */
     public function getAlias($id)
     {
-        $id = $this->normalizeId($id);
+        $id = (string) $id;
 
         if (!isset($this->aliasDefinitions[$id])) {
             throw new InvalidArgumentException(sprintf('The service alias "%s" does not exist.', $id));
@@ -1017,7 +983,11 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
             throw new BadMethodCallException('Adding definition to a compiled container is not allowed');
         }
 
-        $id = $this->normalizeId($id);
+        $id = (string) $id;
+
+        if ('' === $id || '\\' === $id[-1] || \strlen($id) !== strcspn($id, "\0\r\n'")) {
+            throw new InvalidArgumentException(sprintf('Invalid service id: "%s"', $id));
+        }
 
         unset($this->aliasDefinitions[$id], $this->removedIds[$id]);
 
@@ -1033,7 +1003,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      */
     public function hasDefinition($id)
     {
-        return isset($this->definitions[$this->normalizeId($id)]);
+        return isset($this->definitions[(string) $id]);
     }
 
     /**
@@ -1047,7 +1017,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      */
     public function getDefinition($id)
     {
-        $id = $this->normalizeId($id);
+        $id = (string) $id;
 
         if (!isset($this->definitions[$id])) {
             throw new ServiceNotFoundException($id);
@@ -1069,7 +1039,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      */
     public function findDefinition($id)
     {
-        $id = $this->normalizeId($id);
+        $id = (string) $id;
 
         $seen = [];
         while (isset($this->aliasDefinitions[$id])) {
@@ -1154,7 +1124,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
         }
 
         if (null !== $factory) {
-            $service = \call_user_func_array($factory, $arguments);
+            $service = $factory(...$arguments);
 
             if (!$definition->isDeprecated() && \is_array($factory) && \is_string($factory[0])) {
                 $r = new \ReflectionClass($factory[0]);
@@ -1164,14 +1134,11 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
                 }
             }
         } else {
-            $r = new \ReflectionClass($class = $parameterBag->resolveValue($definition->getClass()));
+            $r = new \ReflectionClass($parameterBag->resolveValue($definition->getClass()));
 
             $service = null === $r->getConstructor() ? $r->newInstance() : $r->newInstanceArgs($arguments);
-            // don't trigger deprecations for internal uses
-            // @deprecated since version 3.3, to be removed in 4.0 along with the deprecated class
-            $deprecationWhitelist = ['event_dispatcher' => ContainerAwareEventDispatcher::class];
 
-            if (!$definition->isDeprecated() && 0 < strpos($r->getDocComment(), "\n * @deprecated ") && (!isset($deprecationWhitelist[$id]) || $deprecationWhitelist[$id] !== $class)) {
+            if (!$definition->isDeprecated() && 0 < strpos($r->getDocComment(), "\n * @deprecated ")) {
                 @trigger_error(sprintf('The "%s" service relies on the deprecated "%s" class. It should either be deprecated or its implementation upgraded.', $id, $r->name), E_USER_DEPRECATED);
             }
         }
@@ -1205,7 +1172,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
                 throw new InvalidArgumentException(sprintf('The configure callable for class "%s" is not a callable.', \get_class($service)));
             }
 
-            \call_user_func($callable, $service);
+            $callable($service);
         }
 
         return $service;
@@ -1270,6 +1237,14 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
 
                 return $count;
             });
+        } elseif ($value instanceof ServiceLocatorArgument) {
+            $refs = [];
+            foreach ($value->getValues() as $k => $v) {
+                if ($v) {
+                    $refs[$k] = [$v];
+                }
+            }
+            $value = new ServiceLocator(\Closure::fromCallable([$this, 'resolveServices']), $refs);
         } elseif ($value instanceof Reference) {
             $value = $this->doGet((string) $value, $value->getInvalidBehavior(), $inlineServices, $isConstructorArgument);
         } elseif ($value instanceof Definition) {
@@ -1373,6 +1348,25 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
     }
 
     /**
+     * Registers an autowiring alias that only binds to a specific argument name.
+     *
+     * The argument name is derived from $name if provided (from $id otherwise)
+     * using camel case: "foo.bar" or "foo_bar" creates an alias bound to
+     * "$fooBar"-named arguments with $type as type-hint. Such arguments will
+     * receive the service $id when autowiring is used.
+     */
+    public function registerAliasForArgument(string $id, string $type, string $name = null): Alias
+    {
+        $name = lcfirst(str_replace(' ', '', ucwords(preg_replace('/[^a-zA-Z0-9\x7f-\xff]++/', ' ', $name ?? $id))));
+
+        if (!preg_match('/^[a-zA-Z_\x7f-\xff]/', $name)) {
+            throw new InvalidArgumentException(sprintf('Invalid argument name "%s" for service "%s": the first character must be a letter.', $name, $id));
+        }
+
+        return $this->setAlias($type.' $'.$name, $id);
+    }
+
+    /**
      * Returns an array of ChildDefinition[] keyed by interface.
      *
      * @return ChildDefinition[]
@@ -1469,39 +1463,40 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
     }
 
     /**
-     * @internal
-     */
-    public function getNormalizedIds()
-    {
-        $normalizedIds = [];
-
-        foreach ($this->normalizedIds as $k => $v) {
-            if ($v !== (string) $k) {
-                $normalizedIds[$k] = $v;
-            }
-        }
-
-        return $normalizedIds;
-    }
-
-    /**
      * @final
      */
-    public function log(CompilerPassInterface $pass, $message)
+    public function log(CompilerPassInterface $pass, string $message)
     {
         $this->getCompiler()->log($pass, $this->resolveEnvPlaceholders($message));
     }
 
     /**
-     * {@inheritdoc}
+     * Gets removed binding ids.
+     *
+     * @return array
+     *
+     * @internal
      */
-    public function normalizeId($id)
+    public function getRemovedBindingIds()
     {
-        if (!\is_string($id)) {
-            $id = (string) $id;
-        }
+        return $this->removedBindingIds;
+    }
 
-        return isset($this->definitions[$id]) || isset($this->aliasDefinitions[$id]) || isset($this->removedIds[$id]) ? $id : parent::normalizeId($id);
+    /**
+     * Adds a removed binding id.
+     *
+     * @param int $id
+     *
+     * @internal
+     */
+    public function addRemovedBindingIds($id)
+    {
+        if ($this->hasDefinition($id)) {
+            foreach ($this->getDefinition($id)->getBindings() as $key => $binding) {
+                list(, $bindingId) = $binding->getValues();
+                $this->removedBindingIds[(int) $bindingId] = true;
+            }
+        }
     }
 
     /**
@@ -1511,7 +1506,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      *
      * @return array An array of Service conditionals
      *
-     * @internal since version 3.4
+     * @internal
      */
     public static function getServiceConditionals($value)
     {
@@ -1563,7 +1558,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
     {
         $hash = substr(base64_encode(hash('sha256', serialize($value), true)), 0, 7);
 
-        return str_replace(['/', '+'], ['.', '_'], strtolower($hash));
+        return str_replace(['/', '+'], ['.', '_'], $hash);
     }
 
     /**
@@ -1607,7 +1602,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
             }
         }
 
-        \call_user_func_array([$service, $call[0]], $this->doResolveServices($this->getParameterBag()->unescapeValue($this->getParameterBag()->resolveValue($call[1])), $inlineServices));
+        $service->{$call[0]}(...$this->doResolveServices($this->getParameterBag()->unescapeValue($this->getParameterBag()->resolveValue($call[1])), $inlineServices));
     }
 
     /**
@@ -1631,7 +1626,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
     {
         if (null === $this->expressionLanguage) {
             if (!class_exists('Symfony\Component\ExpressionLanguage\ExpressionLanguage')) {
-                throw new RuntimeException('Unable to use expressions as the Symfony ExpressionLanguage component is not installed.');
+                throw new LogicException('Unable to use expressions as the Symfony ExpressionLanguage component is not installed.');
             }
             $this->expressionLanguage = new ExpressionLanguage(null, $this->expressionLanguageProviders);
         }

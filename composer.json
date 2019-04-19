@@ -1,15 +1,13 @@
 {
     "require": {
         "doctrine/dbal": "^2.5",
-        "symfony/console": "^3.0",
-        "symfony/event-dispatcher": "^3.0",
-        "symfony/process": "^3.0",
+        "symfony/console": "^4",
+        "symfony/event-dispatcher": "^4",
+        "symfony/process": "^4",
         "psr/log": "^1.0",
-        "symfony/dependency-injection": "^3.0",
-        "symfony/http-kernel": "^3.0",
-        "symfony/stopwatch": "^3.1",
-        "pear/xml_rpc2": "^1.1",
-        "pear/pear": "^1.10",
+        "symfony/dependency-injection": "^4",
+        "symfony/http-kernel": "^4",
+        "symfony/stopwatch": "^4",
         "phpxmlrpc/phpxmlrpc": "^4.3"
     },
     "autoload": {

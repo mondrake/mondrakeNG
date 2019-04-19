@@ -21,23 +21,12 @@ class Symfony_DI_PhpDumper_Test_Inline_Self_Ref extends Container
 
     public function __construct()
     {
-        $this->services = [];
-        $this->normalizedIds = [
-            'app\\foo' => 'App\\Foo',
-        ];
+        $this->services = $this->privates = [];
         $this->methodMap = [
             'App\\Foo' => 'getFooService',
         ];
 
         $this->aliases = [];
-    }
-
-    public function getRemovedIds()
-    {
-        return [
-            'Psr\\Container\\ContainerInterface' => true,
-            'Symfony\\Component\\DependencyInjection\\ContainerInterface' => true,
-        ];
     }
 
     public function compile()
@@ -50,11 +39,12 @@ class Symfony_DI_PhpDumper_Test_Inline_Self_Ref extends Container
         return true;
     }
 
-    public function isFrozen()
+    public function getRemovedIds()
     {
-        @trigger_error(sprintf('The %s() method is deprecated since Symfony 3.3 and will be removed in 4.0. Use the isCompiled() method instead.', __METHOD__), E_USER_DEPRECATED);
-
-        return true;
+        return [
+            'Psr\\Container\\ContainerInterface' => true,
+            'Symfony\\Component\\DependencyInjection\\ContainerInterface' => true,
+        ];
     }
 
     /**
@@ -69,7 +59,7 @@ class Symfony_DI_PhpDumper_Test_Inline_Self_Ref extends Container
         $b = new \App\Baz($a);
         $b->bar = $a;
 
-        $this->services['App\Foo'] = $instance = new \App\Foo($b);
+        $this->services['App\\Foo'] = $instance = new \App\Foo($b);
 
         $a->foo = $instance;
 

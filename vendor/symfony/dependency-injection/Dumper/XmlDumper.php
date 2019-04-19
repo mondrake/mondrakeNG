@@ -14,6 +14,7 @@ namespace Symfony\Component\DependencyInjection\Dumper;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
+use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
@@ -185,13 +186,6 @@ class XmlDumper extends Dumper
             $service->setAttribute('autowire', 'true');
         }
 
-        foreach ($definition->getAutowiringTypes(false) as $autowiringTypeValue) {
-            $autowiringType = $this->document->createElement('autowiring-type');
-            $autowiringType->appendChild($this->document->createTextNode($autowiringTypeValue));
-
-            $service->appendChild($autowiringType);
-        }
-
         if ($definition->isAutoconfigured()) {
             $service->setAttribute('autoconfigure', 'true');
         }
@@ -287,6 +281,9 @@ class XmlDumper extends Dumper
             } elseif ($value instanceof IteratorArgument) {
                 $element->setAttribute('type', 'iterator');
                 $this->convertParameters($value->getValues(), $type, $element, 'key');
+            } elseif ($value instanceof ServiceLocatorArgument) {
+                $element->setAttribute('type', 'service_locator');
+                $this->convertParameters($value->getValues(), $type, $element, 'key');
             } elseif ($value instanceof Reference) {
                 $element->setAttribute('type', 'service');
                 $element->setAttribute('id', (string) $value);
@@ -304,6 +301,10 @@ class XmlDumper extends Dumper
             } elseif ($value instanceof Expression) {
                 $element->setAttribute('type', 'expression');
                 $text = $this->document->createTextNode(self::phpToXml((string) $value));
+                $element->appendChild($text);
+            } elseif (\is_string($value) && !preg_match('/^[^\x00-\x08\x0B\x0E-\x1A\x1C-\x1F\x7F]*+$/u', $value)) {
+                $element->setAttribute('type', 'binary');
+                $text = $this->document->createTextNode(self::phpToXml(base64_encode($value)));
                 $element->appendChild($text);
             } else {
                 if (\in_array($value, ['null', 'true', 'false'], true)) {

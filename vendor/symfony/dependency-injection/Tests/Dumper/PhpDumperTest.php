@@ -17,12 +17,13 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\Argument\RewindableGenerator;
 use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
-use Symfony\Component\DependencyInjection\ChildDefinition;
+use Symfony\Component\DependencyInjection\Argument\ServiceLocator as ArgumentServiceLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface as SymfonyContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
 use Symfony\Component\DependencyInjection\EnvVarProcessorInterface;
+use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\DependencyInjection\Parameter;
@@ -178,14 +179,13 @@ class PhpDumperTest extends TestCase
     }
 
     /**
-     * @group legacy
-     * @expectedDeprecation Dumping an uncompiled ContainerBuilder is deprecated since Symfony 3.3 and will not be supported anymore in 4.0. Compile the container beforehand.
+     * @expectedException \Symfony\Component\DependencyInjection\Exception\LogicException
+     * @expectedExceptionMessage Cannot dump an uncompiled container.
      */
     public function testAddServiceWithoutCompilation()
     {
         $container = include self::$fixturesPath.'/containers/container9.php';
-        $dumper = new PhpDumper($container);
-        $this->assertStringEqualsFile(self::$fixturesPath.'/php/services9.php', str_replace(str_replace('\\', '\\\\', self::$fixturesPath.\DIRECTORY_SEPARATOR.'includes'.\DIRECTORY_SEPARATOR), '%path%', $dumper->dump()), '->dump() dumps services');
+        new PhpDumper($container);
     }
 
     public function testAddService()
@@ -212,6 +212,15 @@ class PhpDumperTest extends TestCase
     {
         $container = include self::$fixturesPath.'/containers/container9.php';
         $container->getDefinition('bar')->addTag('hot');
+        $container->register('non_shared_foo', \Bar\FooClass::class)
+            ->setFile(realpath(self::$fixturesPath.'/includes/foo.php'))
+            ->setShared(false)
+            ->setPublic(true);
+        $container->register('throwing_one', \Bar\FooClass::class)
+            ->addArgument(new Reference('errored_one', ContainerBuilder::RUNTIME_EXCEPTION_ON_INVALID_REFERENCE))
+            ->setPublic(true);
+        $container->register('errored_one', 'stdClass')
+            ->addError('No-no-no-no');
         $container->compile();
         $dumper = new PhpDumper($container);
         $dump = print_r($dumper->dump(['as_files' => true, 'file' => __DIR__, 'hot_path_tag' => 'hot']), true);
@@ -219,6 +228,24 @@ class PhpDumperTest extends TestCase
             $dump = str_replace('\\\\Fixtures\\\\includes\\\\foo.php', '/Fixtures/includes/foo.php', $dump);
         }
         $this->assertStringMatchesFormatFile(self::$fixturesPath.'/php/services9_as_files.txt', $dump);
+    }
+
+    public function testNonSharedLazyDumpAsFiles()
+    {
+        $container = include self::$fixturesPath.'/containers/container_non_shared_lazy.php';
+        $container->register('non_shared_foo', \Bar\FooLazyClass::class)
+            ->setFile(realpath(self::$fixturesPath.'/includes/foo_lazy.php'))
+            ->setShared(false)
+            ->setPublic(true)
+            ->setLazy(true);
+        $container->compile();
+        $dumper = new PhpDumper($container);
+        $dump = print_r($dumper->dump(['as_files' => true, 'file' => __DIR__]), true);
+
+        if ('\\' === \DIRECTORY_SEPARATOR) {
+            $dump = str_replace('\\\\Fixtures\\\\includes\\\\foo_lazy.php', '/Fixtures/includes/foo_lazy.php', $dump);
+        }
+        $this->assertStringMatchesFormatFile(self::$fixturesPath.'/php/services_non_shared_lazy_as_files.txt', $dump);
     }
 
     public function testServicesWithAnonymousFactories()
@@ -234,12 +261,18 @@ class PhpDumperTest extends TestCase
     {
         $class = 'Symfony_DI_PhpDumper_Test_Unsupported_Characters';
         $container = new ContainerBuilder();
+        $container->setParameter("'", 'oh-no');
+        $container->register("foo*/oh-no", 'FooClass')->setPublic(true);
         $container->register('bar$', 'FooClass')->setPublic(true);
         $container->register('bar$!', 'FooClass')->setPublic(true);
         $container->compile();
         $dumper = new PhpDumper($container);
-        eval('?>'.$dumper->dump(['class' => $class]));
 
+        $this->assertStringEqualsFile(self::$fixturesPath.'/php/services_unsupported_characters.php', $dumper->dump(['class' => $class]));
+
+        require_once self::$fixturesPath.'/php/services_unsupported_characters.php';
+
+        $this->assertTrue(method_exists($class, 'getFooOhNoService'));
         $this->assertTrue(method_exists($class, 'getBarService'));
         $this->assertTrue(method_exists($class, 'getBar2Service'));
     }
@@ -329,8 +362,8 @@ class PhpDumperTest extends TestCase
     }
 
     /**
-     * @group legacy
-     * @expectedDeprecation The "decorator_service" service is already initialized, replacing it is deprecated since Symfony 3.3 and will fail in 4.0.
+     * @expectedException \Symfony\Component\DependencyInjection\Exception\InvalidArgumentException
+     * @expectedExceptionMessage The "decorator_service" service is already initialized, you cannot replace it.
      */
     public function testOverrideServiceWhenUsingADumpedContainer()
     {
@@ -411,6 +444,44 @@ class PhpDumperTest extends TestCase
         require self::$fixturesPath.'/php/services_base64_env.php';
         $container = new \Symfony_DI_PhpDumper_Test_Base64Parameters();
         $this->assertSame('world', $container->getParameter('hello'));
+    }
+
+    public function testDumpedCsvEnvParameters()
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('env(foo)', 'foo,bar');
+        $container->setParameter('hello', '%env(csv:foo)%');
+        $container->compile();
+
+        $dumper = new PhpDumper($container);
+        $dumper->dump();
+
+        $this->assertStringEqualsFile(self::$fixturesPath.'/php/services_csv_env.php', $dumper->dump(['class' => 'Symfony_DI_PhpDumper_Test_CsvParameters']));
+
+        require self::$fixturesPath.'/php/services_csv_env.php';
+        $container = new \Symfony_DI_PhpDumper_Test_CsvParameters();
+        $this->assertSame(['foo', 'bar'], $container->getParameter('hello'));
+    }
+
+    public function testDumpedJsonEnvParameters()
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('env(foo)', '["foo","bar"]');
+        $container->setParameter('env(bar)', 'null');
+        $container->setParameter('hello', '%env(json:foo)%');
+        $container->setParameter('hello-bar', '%env(json:bar)%');
+        $container->compile();
+
+        $dumper = new PhpDumper($container);
+        $dumper->dump();
+
+        $this->assertStringEqualsFile(self::$fixturesPath.'/php/services_json_env.php', $dumper->dump(['class' => 'Symfony_DI_PhpDumper_Test_JsonParameters']));
+
+        putenv('foobar="hello"');
+        require self::$fixturesPath.'/php/services_json_env.php';
+        $container = new \Symfony_DI_PhpDumper_Test_JsonParameters();
+        $this->assertSame(['foo', 'bar'], $container->getParameter('hello'));
+        $this->assertNull($container->getParameter('hello-bar'));
     }
 
     public function testCustomEnvParameters()
@@ -494,7 +565,7 @@ class PhpDumperTest extends TestCase
     {
         $container = new ContainerBuilder();
         $container->register('foo', 'stdClass')->setShared(false)->setLazy(true);
-        $container->register('bar', 'stdClass')->addArgument(new Reference('foo', ContainerBuilder::EXCEPTION_ON_INVALID_REFERENCE, false));
+        $container->register('bar', 'stdClass')->addArgument(new Reference('foo', ContainerBuilder::EXCEPTION_ON_INVALID_REFERENCE, false))->setPublic(true);
         $container->compile();
 
         $dumper = new PhpDumper($container);
@@ -977,55 +1048,6 @@ class PhpDumperTest extends TestCase
     }
 
     /**
-     * @group legacy
-     * @expectedDeprecation The "private" service is private, getting it from the container is deprecated since Symfony 3.2 and will fail in 4.0. You should either make the service public, or stop using the container directly and use dependency injection instead.
-     * @expectedDeprecation The "private_alias" service is private, getting it from the container is deprecated since Symfony 3.2 and will fail in 4.0. You should either make the service public, or stop using the container directly and use dependency injection instead.
-     * @expectedDeprecation The "decorated_private" service is private, getting it from the container is deprecated since Symfony 3.2 and will fail in 4.0. You should either make the service public, or stop using the container directly and use dependency injection instead.
-     * @expectedDeprecation The "decorated_private_alias" service is private, getting it from the container is deprecated since Symfony 3.2 and will fail in 4.0. You should either make the service public, or stop using the container directly and use dependency injection instead.
-     * @expectedDeprecation The "private_not_inlined" service is private, getting it from the container is deprecated since Symfony 3.2 and will fail in 4.0. You should either make the service public, or stop using the container directly and use dependency injection instead.
-     * @expectedDeprecation The "private_not_removed" service is private, getting it from the container is deprecated since Symfony 3.2 and will fail in 4.0. You should either make the service public, or stop using the container directly and use dependency injection instead.
-     * @expectedDeprecation The "private_child" service is private, getting it from the container is deprecated since Symfony 3.2 and will fail in 4.0. You should either make the service public, or stop using the container directly and use dependency injection instead.
-     * @expectedDeprecation The "private_parent" service is private, getting it from the container is deprecated since Symfony 3.2 and will fail in 4.0. You should either make the service public, or stop using the container directly and use dependency injection instead.
-     */
-    public function testLegacyPrivateServices()
-    {
-        $container = new ContainerBuilder();
-        $loader = new YamlFileLoader($container, new FileLocator(self::$fixturesPath.'/yaml'));
-        $loader->load('services_legacy_privates.yml');
-
-        $container->setDefinition('private_child', new ChildDefinition('foo'));
-        $container->setDefinition('private_parent', new ChildDefinition('private'));
-
-        $container->getDefinition('private')->setPrivate(true);
-        $container->getDefinition('private_not_inlined')->setPrivate(true);
-        $container->getDefinition('private_not_removed')->setPrivate(true);
-        $container->getDefinition('decorated_private')->setPrivate(true);
-        $container->getDefinition('private_child')->setPrivate(true);
-        $container->getAlias('decorated_private_alias')->setPrivate(true);
-        $container->getAlias('private_alias')->setPrivate(true);
-
-        $container->compile();
-        $dumper = new PhpDumper($container);
-
-        $this->assertStringEqualsFile(self::$fixturesPath.'/php/services_legacy_privates.php', $dumper->dump(['class' => 'Symfony_DI_PhpDumper_Test_Legacy_Privates', 'file' => self::$fixturesPath.'/php/services_legacy_privates.php']));
-
-        require self::$fixturesPath.'/php/services_legacy_privates.php';
-
-        $container = new \Symfony_DI_PhpDumper_Test_Legacy_Privates();
-
-        $container->get('private');
-        $container->get('private_alias');
-        $container->get('alias_to_private');
-        $container->get('decorated_private');
-        $container->get('decorated_private_alias');
-        $container->get('private_not_inlined');
-        $container->get('private_not_removed');
-        $container->get('private_child');
-        $container->get('private_parent');
-        $container->get('public_child');
-    }
-
-    /**
      * This test checks the trigger of a deprecation note and should not be removed in major releases.
      *
      * @group legacy
@@ -1051,12 +1073,6 @@ class PhpDumperTest extends TestCase
         $container->get('bar');
     }
 
-    /**
-     * @group legacy
-     * @expectedDeprecation Parameter names will be made case sensitive in Symfony 4.0. Using "foo" instead of "Foo" is deprecated since Symfony 3.4.
-     * @expectedDeprecation Parameter names will be made case sensitive in Symfony 4.0. Using "FOO" instead of "Foo" is deprecated since Symfony 3.4.
-     * @expectedDeprecation Parameter names will be made case sensitive in Symfony 4.0. Using "bar" instead of "BAR" is deprecated since Symfony 3.4.
-     */
     public function testParameterWithMixedCase()
     {
         $container = new ContainerBuilder(new ParameterBag(['Foo' => 'bar', 'BAR' => 'foo']));
@@ -1067,47 +1083,58 @@ class PhpDumperTest extends TestCase
 
         $container = new \Symfony_DI_PhpDumper_Test_Parameter_With_Mixed_Case();
 
-        $this->assertSame('bar', $container->getParameter('foo'));
-        $this->assertSame('bar', $container->getParameter('FOO'));
-        $this->assertSame('foo', $container->getParameter('bar'));
+        $this->assertSame('bar', $container->getParameter('Foo'));
         $this->assertSame('foo', $container->getParameter('BAR'));
     }
 
     /**
-     * @group legacy
-     * @expectedDeprecation Parameter names will be made case sensitive in Symfony 4.0. Using "FOO" instead of "foo" is deprecated since Symfony 3.4.
+     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
+     * @expectedExceptionMessage Service "errored_definition" is broken.
      */
-    public function testParameterWithLowerCase()
+    public function testErroredDefinition()
     {
-        $container = new ContainerBuilder(new ParameterBag(['foo' => 'bar']));
+        $container = include self::$fixturesPath.'/containers/container9.php';
+        $container->setParameter('foo_bar', 'foo_bar');
         $container->compile();
-
         $dumper = new PhpDumper($container);
-        eval('?>'.$dumper->dump(['class' => 'Symfony_DI_PhpDumper_Test_Parameter_With_Lower_Case']));
+        $dump = $dumper->dump(['class' => 'Symfony_DI_PhpDumper_Errored_Definition']);
+        $this->assertStringEqualsFile(self::$fixturesPath.'/php/services_errored_definition.php', str_replace(str_replace('\\', '\\\\', self::$fixturesPath.\DIRECTORY_SEPARATOR.'includes'.\DIRECTORY_SEPARATOR), '%path%', $dump));
+        eval('?>'.$dump);
 
-        $container = new \Symfony_DI_PhpDumper_Test_Parameter_With_Lower_Case();
-
-        $this->assertSame('bar', $container->getParameter('FOO'));
+        $container = new \Symfony_DI_PhpDumper_Errored_Definition();
+        $container->get('runtime_error');
     }
 
-    /**
-     * @group legacy
-     * @expectedDeprecation Service identifiers will be made case sensitive in Symfony 4.0. Using "foo" instead of "Foo" is deprecated since Symfony 3.3.
-     * @expectedDeprecation The "Foo" service is deprecated. You should stop using it, as it will soon be removed.
-     */
-    public function testReferenceWithLowerCaseId()
+    public function testServiceLocatorArgument()
     {
-        $container = new ContainerBuilder();
-        $container->register('Bar', 'stdClass')->setProperty('foo', new Reference('foo'))->setPublic(true);
-        $container->register('Foo', 'stdClass')->setDeprecated();
+        $container = include self::$fixturesPath.'/containers/container_service_locator_argument.php';
         $container->compile();
-
         $dumper = new PhpDumper($container);
-        eval('?>'.$dumper->dump(['class' => 'Symfony_DI_PhpDumper_Test_Reference_With_Lower_Case_Id']));
+        $dump = $dumper->dump(['class' => 'Symfony_DI_PhpDumper_Service_Locator_Argument']);
+        $this->assertStringEqualsFile(self::$fixturesPath.'/php/services_service_locator_argument.php', str_replace(str_replace('\\', '\\\\', self::$fixturesPath.\DIRECTORY_SEPARATOR.'includes'.\DIRECTORY_SEPARATOR), '%path%', $dump));
+        eval('?>'.$dump);
 
-        $container = new \Symfony_DI_PhpDumper_Test_Reference_With_Lower_Case_Id();
+        $container = new \Symfony_DI_PhpDumper_Service_Locator_Argument();
+        $locator = $container->get('bar')->locator;
 
-        $this->assertEquals((object) ['foo' => (object) []], $container->get('Bar'));
+        $this->assertInstanceOf(ArgumentServiceLocator::class, $locator);
+        $this->assertSame($container->get('foo1'), $locator->get('foo1'));
+        $this->assertEquals(new \stdClass(), $locator->get('foo2'));
+        $this->assertSame($locator->get('foo2'), $locator->get('foo2'));
+        $this->assertEquals(new \stdClass(), $locator->get('foo3'));
+        $this->assertNotSame($locator->get('foo3'), $locator->get('foo3'));
+
+        try {
+            $locator->get('foo4');
+            $this->fail('RuntimeException expected.');
+        } catch (RuntimeException $e) {
+            $this->assertSame('BOOM', $e->getMessage());
+        }
+
+        $this->assertNull($locator->get('foo5'));
+
+        $container->set('foo5', $foo5 = new \stdClass());
+        $this->assertSame($foo5, $locator->get('foo5'));
     }
 }
 

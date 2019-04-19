@@ -23,17 +23,9 @@ class ProjectServiceContainer extends Container
     {
         $this->parameters = $this->getDefaultParameters();
 
-        $this->services = [];
+        $this->services = $this->privates = [];
 
         $this->aliases = [];
-    }
-
-    public function getRemovedIds()
-    {
-        return [
-            'Psr\\Container\\ContainerInterface' => true,
-            'Symfony\\Component\\DependencyInjection\\ContainerInterface' => true,
-        ];
     }
 
     public function compile()
@@ -46,22 +38,20 @@ class ProjectServiceContainer extends Container
         return true;
     }
 
-    public function isFrozen()
+    public function getRemovedIds()
     {
-        @trigger_error(sprintf('The %s() method is deprecated since Symfony 3.3 and will be removed in 4.0. Use the isCompiled() method instead.', __METHOD__), E_USER_DEPRECATED);
-
-        return true;
+        return [
+            'Psr\\Container\\ContainerInterface' => true,
+            'Symfony\\Component\\DependencyInjection\\ContainerInterface' => true,
+        ];
     }
 
     public function getParameter($name)
     {
         $name = (string) $name;
-        if (!(isset($this->parameters[$name]) || isset($this->loadedDynamicParameters[$name]) || array_key_exists($name, $this->parameters))) {
-            $name = $this->normalizeParameterName($name);
 
-            if (!(isset($this->parameters[$name]) || isset($this->loadedDynamicParameters[$name]) || array_key_exists($name, $this->parameters))) {
-                throw new InvalidArgumentException(sprintf('The parameter "%s" must be defined.', $name));
-            }
+        if (!(isset($this->parameters[$name]) || isset($this->loadedDynamicParameters[$name]) || array_key_exists($name, $this->parameters))) {
+            throw new InvalidArgumentException(sprintf('The parameter "%s" must be defined.', $name));
         }
         if (isset($this->loadedDynamicParameters[$name])) {
             return $this->loadedDynamicParameters[$name] ? $this->dynamicParameters[$name] : $this->getDynamicParameter($name);
@@ -73,7 +63,6 @@ class ProjectServiceContainer extends Container
     public function hasParameter($name)
     {
         $name = (string) $name;
-        $name = $this->normalizeParameterName($name);
 
         return isset($this->parameters[$name]) || isset($this->loadedDynamicParameters[$name]) || array_key_exists($name, $this->parameters);
     }
@@ -113,22 +102,6 @@ class ProjectServiceContainer extends Container
         throw new InvalidArgumentException(sprintf('The dynamic parameter "%s" must be defined.', $name));
     }
 
-    private $normalizedParameterNames = [];
-
-    private function normalizeParameterName($name)
-    {
-        if (isset($this->normalizedParameterNames[$normalizedName = strtolower($name)]) || isset($this->parameters[$normalizedName]) || array_key_exists($normalizedName, $this->parameters)) {
-            $normalizedName = isset($this->normalizedParameterNames[$normalizedName]) ? $this->normalizedParameterNames[$normalizedName] : $normalizedName;
-            if ((string) $name !== $normalizedName) {
-                @trigger_error(sprintf('Parameter names will be made case sensitive in Symfony 4.0. Using "%s" instead of "%s" is deprecated since Symfony 3.4.', $name, $normalizedName), E_USER_DEPRECATED);
-            }
-        } else {
-            $normalizedName = $this->normalizedParameterNames[$normalizedName] = (string) $name;
-        }
-
-        return $normalizedName;
-    }
-
     /**
      * Gets the default parameters.
      *
@@ -151,6 +124,8 @@ class ProjectServiceContainer extends Container
                 6 => 'false',
                 7 => 'null',
             ],
+            'binary' => 'ננננ',
+            'binary-control-char' => 'This is a Bell char ',
         ];
     }
 }

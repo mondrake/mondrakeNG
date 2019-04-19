@@ -196,6 +196,38 @@ class ContainerBuilderTest extends TestCase
     }
 
     /**
+     * @expectedException \Symfony\Component\DependencyInjection\Exception\InvalidArgumentException
+     * @dataProvider provideBadId
+     */
+    public function testBadAliasId($id)
+    {
+        $builder = new ContainerBuilder();
+        $builder->setAlias($id, 'foo');
+    }
+
+    /**
+     * @expectedException \Symfony\Component\DependencyInjection\Exception\InvalidArgumentException
+     * @dataProvider provideBadId
+     */
+    public function testBadDefinitionId($id)
+    {
+        $builder = new ContainerBuilder();
+        $builder->setDefinition($id, new Definition('Foo'));
+    }
+
+    public function provideBadId()
+    {
+        return [
+            [''],
+            ["\0"],
+            ["\r"],
+            ["\n"],
+            ["'"],
+            ['ab\\'],
+        ];
+    }
+
+    /**
      * @expectedException        \Symfony\Component\DependencyInjection\Exception\RuntimeException
      * @expectedExceptionMessage You have requested a synthetic service ("foo"). The DIC does not know how to construct this service.
      */
@@ -886,32 +918,6 @@ class ContainerBuilderTest extends TestCase
         $this->assertSame(realpath(__DIR__.'/Fixtures/includes/classes.php'), realpath($resource->getResource()));
     }
 
-    /**
-     * @group legacy
-     */
-    public function testAddClassResource()
-    {
-        $container = new ContainerBuilder();
-
-        $container->setResourceTracking(false);
-        $container->addClassResource(new \ReflectionClass('BarClass'));
-
-        $this->assertEmpty($container->getResources(), 'No resources get registered without resource tracking');
-
-        $container->setResourceTracking(true);
-        $container->addClassResource(new \ReflectionClass('BarClass'));
-
-        $resources = $container->getResources();
-
-        $this->assertCount(2, $resources, '2 resources were registered');
-
-        /* @var $resource \Symfony\Component\Config\Resource\FileResource */
-        $resource = end($resources);
-
-        $this->assertInstanceOf('Symfony\Component\Config\Resource\FileResource', $resource);
-        $this->assertSame(realpath(__DIR__.'/Fixtures/includes/classes.php'), realpath($resource->getResource()));
-    }
-
     public function testGetReflectionClass()
     {
         $container = new ContainerBuilder();
@@ -1409,41 +1415,42 @@ class ContainerBuilderTest extends TestCase
         $this->assertSame($childDefA, $container->registerForAutoconfiguration('AInterface'));
     }
 
-    /**
-     * This test checks the trigger of a deprecation note and should not be removed in major releases.
-     *
-     * @group legacy
-     * @expectedDeprecation The "foo" service is deprecated. You should stop using it, as it will soon be removed.
-     */
-    public function testPrivateServiceTriggersDeprecation()
+    public function testRegisterAliasForArgument()
     {
         $container = new ContainerBuilder();
-        $container->register('foo', 'stdClass')
-            ->setPublic(false)
-            ->setDeprecated(true);
-        $container->register('bar', 'stdClass')
-            ->setPublic(true)
-            ->setProperty('foo', new Reference('foo'));
+
+        $container->registerAliasForArgument('Foo.bar_baz', 'Some\FooInterface');
+        $this->assertEquals(new Alias('Foo.bar_baz'), $container->getAlias('Some\FooInterface $fooBarBaz'));
+
+        $container->registerAliasForArgument('Foo.bar_baz', 'Some\FooInterface', 'Bar_baz.foo');
+        $this->assertEquals(new Alias('Foo.bar_baz'), $container->getAlias('Some\FooInterface $barBazFoo'));
+    }
+
+    public function testCaseSensitivity()
+    {
+        $container = new ContainerBuilder();
+        $container->register('foo', 'stdClass')->setPublic(true);
+        $container->register('Foo', 'stdClass')->setProperty('foo', new Reference('foo'))->setPublic(false);
+        $container->register('fOO', 'stdClass')->setProperty('Foo', new Reference('Foo'))->setPublic(true);
+
+        $this->assertSame(['service_container', 'foo', 'Foo', 'fOO', 'Psr\Container\ContainerInterface', 'Symfony\Component\DependencyInjection\ContainerInterface'], $container->getServiceIds());
 
         $container->compile();
 
-        $container->get('bar');
+        $this->assertNotSame($container->get('foo'), $container->get('fOO'), '->get() returns the service for the given id, case sensitively');
+        $this->assertSame($container->get('fOO')->Foo->foo, $container->get('foo'), '->get() returns the service for the given id, case sensitively');
     }
 
-    /**
-     * @group legacy
-     * @expectedDeprecation Parameter names will be made case sensitive in Symfony 4.0. Using "FOO" instead of "foo" is deprecated since Symfony 3.4.
-     */
     public function testParameterWithMixedCase()
     {
-        $container = new ContainerBuilder(new ParameterBag(['foo' => 'bar']));
+        $container = new ContainerBuilder(new ParameterBag(['foo' => 'bar', 'FOO' => 'BAR']));
         $container->register('foo', 'stdClass')
             ->setPublic(true)
             ->setProperty('foo', '%FOO%');
 
         $container->compile();
 
-        $this->assertSame('bar', $container->get('foo')->foo);
+        $this->assertSame('BAR', $container->get('foo')->foo);
     }
 
     public function testArgumentsHaveHigherPriorityThanBindings()
@@ -1483,6 +1490,66 @@ class ContainerBuilderTest extends TestCase
 
         $container->set('foo', (object) [123]);
         $this->assertEquals((object) ['foo' => (object) [123]], $container->get('bar'));
+    }
+
+    public function testIdCanBeAnObjectAsLongAsItCanBeCastToString()
+    {
+        $id = new Reference('another_service');
+        $aliasId = new Reference('alias_id');
+
+        $container = new ContainerBuilder();
+        $container->set($id, new \stdClass());
+        $container->setAlias($aliasId, 'another_service');
+
+        $this->assertTrue($container->has('another_service'));
+        $this->assertTrue($container->has($id));
+        $this->assertTrue($container->hasAlias('alias_id'));
+        $this->assertTrue($container->hasAlias($aliasId));
+
+        $container->removeAlias($aliasId);
+        $container->removeDefinition($id);
+    }
+
+    /**
+     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
+     * @expectedExceptionMessage Service "errored_definition" is broken.
+     */
+    public function testErroredDefinition()
+    {
+        $container = new ContainerBuilder();
+
+        $container->register('errored_definition', 'stdClass')
+            ->addError('Service "errored_definition" is broken.')
+            ->setPublic(true);
+
+        $container->get('errored_definition');
+    }
+
+    public function testServiceLocatorArgument()
+    {
+        $container = include __DIR__.'/Fixtures/containers/container_service_locator_argument.php';
+        $container->compile();
+
+        $locator = $container->get('bar')->locator;
+
+        $this->assertInstanceOf(ServiceLocator::class, $locator);
+        $this->assertSame($container->get('foo1'), $locator->get('foo1'));
+        $this->assertEquals(new \stdClass(), $locator->get('foo2'));
+        $this->assertSame($locator->get('foo2'), $locator->get('foo2'));
+        $this->assertEquals(new \stdClass(), $locator->get('foo3'));
+        $this->assertNotSame($locator->get('foo3'), $locator->get('foo3'));
+
+        try {
+            $locator->get('foo4');
+            $this->fail('RuntimeException expected.');
+        } catch (RuntimeException $e) {
+            $this->assertSame('BOOM', $e->getMessage());
+        }
+
+        $this->assertNull($locator->get('foo5'));
+
+        $container->set('foo5', $foo5 = new \stdClass());
+        $this->assertSame($foo5, $locator->get('foo5'));
     }
 
     public function testDecoratedSelfReferenceInvolvingPrivateServices()

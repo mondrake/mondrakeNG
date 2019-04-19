@@ -144,30 +144,6 @@ class DecoratorServicePassTest extends TestCase
         $this->assertEquals(['bar' => ['attr' => 'baz'], 'foobar' => ['attr' => 'bar']], $container->getDefinition('baz')->getTags());
     }
 
-    /**
-     * @group legacy
-     */
-    public function testProcessMergesAutowiringTypesInDecoratingDefinitionAndRemoveThemFromDecoratedDefinition()
-    {
-        $container = new ContainerBuilder();
-
-        $container
-            ->register('parent')
-            ->addAutowiringType('Bar')
-        ;
-
-        $container
-            ->register('child')
-            ->setDecoratedService('parent')
-            ->addAutowiringType('Foo')
-        ;
-
-        $this->process($container);
-
-        $this->assertEquals(['Bar', 'Foo'], $container->getDefinition('child')->getAutowiringTypes());
-        $this->assertEmpty($container->getDefinition('child.inner')->getAutowiringTypes());
-    }
-
     public function testProcessMovesTagsFromDecoratedDefinitionToDecoratingDefinitionMultipleTimes()
     {
         $container = new ContainerBuilder();

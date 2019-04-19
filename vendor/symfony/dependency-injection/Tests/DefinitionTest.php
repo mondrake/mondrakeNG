@@ -364,22 +364,6 @@ class DefinitionTest extends TestCase
         $this->assertSame([], $def->getChanges());
     }
 
-    /**
-     * @group legacy
-     */
-    public function testTypes()
-    {
-        $def = new Definition('stdClass');
-
-        $this->assertEquals([], $def->getAutowiringTypes());
-        $this->assertSame($def, $def->setAutowiringTypes(['Foo']));
-        $this->assertEquals(['Foo'], $def->getAutowiringTypes());
-        $this->assertSame($def, $def->addAutowiringType('Bar'));
-        $this->assertTrue($def->hasAutowiringType('Bar'));
-        $this->assertSame($def, $def->removeAutowiringType('Foo'));
-        $this->assertEquals(['Bar'], $def->getAutowiringTypes());
-    }
-
     public function testShouldAutoconfigure()
     {
         $def = new Definition('stdClass');
