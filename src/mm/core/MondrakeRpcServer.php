@@ -633,6 +633,6 @@ $sqlq->update();
 throw new \exception('test');*/
 
     //return $resp;  
-    return new (Encoder())->encode($resp);
+    return (new Encoder())->encode($resp);
     }
 }
