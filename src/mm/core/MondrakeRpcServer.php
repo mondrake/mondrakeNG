@@ -25,6 +25,7 @@ use mondrakeNG\mm\classes\MMEnvironment;
 use mondrakeNG\mm\classes\MMUserLogin;
 use mondrakeNG\mm\classes\MMDbReplicaTable;
 use mondrakeNG\mm\classes\AXPortfolioDailyVal;
+use PhpXmlRpc\Response;
 
 
 class MondrakeRpcServer {
@@ -40,7 +41,7 @@ class MondrakeRpcServer {
     try {
       $srvRunTime = new MMTimer;
       $srvRunTime->start();
-      return self::formatResponse('setLink', MMObj::MMOBJ_OK, '', '', $srvRunTime);
+      return new Response(self::formatResponse('setLink', MMObj::MMOBJ_OK, '', '', $srvRunTime));
     }
     catch(\Exception $e){
       $trace = $e->getTrace();
