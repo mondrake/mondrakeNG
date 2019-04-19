@@ -33,6 +33,7 @@ class ComposerStaticInit0ee04e2345e42ee4d232c9eb1ee93051
         array (
             'Psr\\Log\\' => 8,
             'Psr\\Container\\' => 14,
+            'PhpXmlRpc\\' => 10,
         ),
         'D' => 
         array (
@@ -94,6 +95,10 @@ class ComposerStaticInit0ee04e2345e42ee4d232c9eb1ee93051
         'Psr\\Container\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
+        ),
+        'PhpXmlRpc\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpxmlrpc/phpxmlrpc/src',
         ),
         'Doctrine\\DBAL\\' => 
         array (
