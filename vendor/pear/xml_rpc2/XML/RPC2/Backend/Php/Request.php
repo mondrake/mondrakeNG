@@ -190,6 +190,7 @@ class XML_RPC2_Backend_Php_Request
         $params = array();
 error_log(var_export($simpleXML->params, true));
 error_log(var_export($simpleXML->params->param, true));
+error_log(var_export($simpleXML->params->params, true));
         foreach ($simpleXML->params->param as $param) {
 error_log(var_export($param->value, true));
             foreach ($param->value as $value) {
