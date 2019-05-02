@@ -73,6 +73,7 @@ class MondrakeRpcServer {
    * @return object the object
    */
   public static function authenticate($xmlrpcmsg) {
+error_log(var_export($xmlrpcmsg->getParam(0), true));
     $authParms = [];
     $srvRunTime = new MMTimer;
     $srvRunTime->start();
