@@ -73,7 +73,7 @@ class MondrakeRpcServer {
    * @return object the object
    */
   public static function authenticate($xmlrpcmsg) {
-    $authParms = $xmlrpcmsg->getParam(0);
+    $authParms = [];
     $srvRunTime = new MMTimer;
     $srvRunTime->start();
     $authParms['mmTokenSecsToExpiration'] = 8*24*3600;
