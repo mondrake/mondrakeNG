@@ -72,7 +72,8 @@ class MondrakeRpcServer {
    * @param array authParms
    * @return object the object
    */
-  public static function authenticate($authParms) {
+  public static function authenticate($xmlrpcmsg) {
+    $authParms = $xmlrpcmsg->getParam(0);
     $srvRunTime = new MMTimer;
     $srvRunTime->start();
     $authParms['mmTokenSecsToExpiration'] = 8*24*3600;
@@ -96,7 +97,7 @@ class MondrakeRpcServer {
       default:      // Invalid
         $stat = MMObj::MMOBJ_ERROR;
     }
-    return self::formatResponse('authenticate', $stat, $authParms['authMsg'], $authParms, $srvRunTime);
+    return new Response(self::formatResponse('authenticate', $stat, $authParms['authMsg'], $authParms, $srvRunTime));
   }
 
     /**
