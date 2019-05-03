@@ -108,24 +108,27 @@ class MondrakeRpcServer {
      * @updateId int last update
      * @return array ---
      */
-    public static function ackLastUpdate($updateId) {
-    $srvRunTime = new MMTimer;
-    $srvRunTime->start();
-    self::sessionValidate();
-    try{
-      // sets last confirmed update id
-      self::$gObj->beginTransaction();
-      $clientCtl = new MMClientCtl;
-      $sessionContext = self::$gObj->getSessionContext();
-      $clientCtl->read($sessionContext['client']);
-      $clientCtl->last_update_id = $updateId;
-      $clientCtl->update();
-      self::$gObj->commit();
-      return self::formatResponse('ackLastUpdate', MMObj::MMOBJ_OK, null, null, $srvRunTime);
-    }
-    catch(\Exception $e){
-      throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
-    }
+    public static function ackLastUpdate($xmlrpcmsg) {
+      $encoder = new Encoder();
+      $n = $encoder->decode($xmlrpcmsg);    
+      $updateId = $n[0];
+      $srvRunTime = new MMTimer;
+      $srvRunTime->start();
+      self::sessionValidate();
+      try{
+        // sets last confirmed update id
+        self::$gObj->beginTransaction();
+        $clientCtl = new MMClientCtl;
+        $sessionContext = self::$gObj->getSessionContext();
+        $clientCtl->read($sessionContext['client']);
+        $clientCtl->last_update_id = $updateId;
+        $clientCtl->update();
+        self::$gObj->commit();
+        return new Response(self::formatResponse('ackLastUpdate', MMObj::MMOBJ_OK, null, null, $srvRunTime));
+      }
+      catch(\Exception $e){
+        throw new \XML_RPC2_FaultException($e->getMessage(), $e->getCode());
+      }
     }
 
     /**
