@@ -76,11 +76,10 @@ class MondrakeRpcServer {
     $encoder = new Encoder();
     $n = $encoder->decode($xmlrpcmsg);    
     $authParms = $n[0];
-error_log(var_export($authParms, true));
     $srvRunTime = new MMTimer;
     $srvRunTime->start();
     $authParms['mmTokenSecsToExpiration'] = 8*24*3600;
-    $mmToken = $authParms['mmToken'];
+    $mmToken = isset($authParms['mmToken']) ? $authParms['mmToken'] : null;
     $mmUserLogin = new MMUserLogin;
     $mmUserLogin->beginTransaction();
     $res = $mmUserLogin->userAuthenticate($authParms);
@@ -100,7 +99,7 @@ error_log(var_export($authParms, true));
       default:      // Invalid
         $stat = MMObj::MMOBJ_ERROR;
     }
-    return new Response(self::formatResponse('authenticate', $stat, $authParms['authMsg'], $authParms, $srvRunTime));
+    return new Response(self::formatResponse('authenticate', $stat, isset($authParms['authMsg']) ? $authParms['authMsg'] : null, $authParms, $srvRunTime));
   }
 
     /**
