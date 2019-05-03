@@ -198,7 +198,12 @@ class MondrakeRpcServer {
      *
      * @return array            the object
      */
-    public static function download($environment, $cliLastUpdateId, $limit) {
+    public static function download($xmlrpcmsg) {
+    $encoder = new Encoder();
+    $n = $encoder->decode($xmlrpcmsg);    
+    $environment = $n[0];
+    $cliLastUpdateId = $n[1];
+    $limit = $n[2];
     $srvRunTime = new MMTimer;
     $srvRunTime->start();
     $diag = new MMDiag;
@@ -227,7 +232,7 @@ class MondrakeRpcServer {
       $payloadResponse['download'] = $replChunk;
       $payloadResponse['lastUpdateId'] = $cliLastUpdateId;
       $payloadResponse['isComplete'] = $isComplete;
-      return self::formatResponse('download', MMObj::MMOBJ_OK, $diag->get(), $payloadResponse, $srvRunTime);
+      return new Response(self::formatResponse('download', MMObj::MMOBJ_OK, $diag->get(), $payloadResponse, $srvRunTime));
     }
     catch(\Exception $e){
       $trace = $e->getTrace();
