@@ -84,7 +84,7 @@ class MondrakeRpcServer {
     $mmUserLogin->beginTransaction();
     $res = $mmUserLogin->userAuthenticate($authParms);
     if ($res == TRUE) {
-      if ($mmToken) $mmToken = $authParms['mmToken'];
+      if (isset($authParms['mmToken'])) $mmToken = $authParms['mmToken'];
       $_SESSION['mmToken'] = $mmToken;
     }
     $mmUserLogin->commit();
