@@ -84,7 +84,7 @@ class MondrakeRpcServer {
     $mmUserLogin->beginTransaction();
     $res = $mmUserLogin->userAuthenticate($authParms);
     if ($res == TRUE) {
-      if (!is_null($authParms['mmToken'])) $mmToken = $authParms['mmToken'];
+      if ($mmToken) $mmToken = $authParms['mmToken'];
       $_SESSION['mmToken'] = $mmToken;
     }
     $mmUserLogin->commit();
@@ -298,6 +298,7 @@ throw new \exception('test');*/
       $encoder = new Encoder();
       $n = $encoder->decode($xmlrpcmsg);    
       $arr = $n[0];
+error_log(var_export($arr, true));
       $srvRunTime = new MMTimer;
       $srvRunTime->start();
       $diag = new MMDiag;
