@@ -427,7 +427,7 @@ abstract class MMObj {
    error_log(var_export($d, true));
    error_log(var_export($d->format(\DateTime::ISO8601), true));
                         if ($d && $d->format(\DateTime::ISO8601) === $this->$a) {
-                            $this->$a = $d->format('Y-M-d');
+                            $this->$a = $d->format('Y-m-d');
                         }                        
    error_log($this->$a);
                         $comp = preg_split("/[\s\-:\.\/]+/", $this->$a);
