@@ -421,6 +421,10 @@ abstract class MMObj {
                         }
                         break;
                     case 'date':
+                        $d = \DateTime::createFromFormat(\DateTime::ISO8601, $this->$a);
+                        if ($d && $d->format(\DateTime::ISO8601) === $this->$a) {
+                            $this->$a = $d->format('Y-M-d');
+                        }                        
                         $comp = preg_split("/[\s\-:\.\/]+/", $this->$a);
                         if (count($comp) == 3)    {
                             if (is_numeric($comp[0]) and is_numeric($comp[1]) and is_numeric($comp[2]))
