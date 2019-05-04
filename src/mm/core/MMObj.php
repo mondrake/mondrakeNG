@@ -429,6 +429,8 @@ abstract class MMObj {
                                     break;
                                 }
                         }
+   error_log($a);
+   error_log($this->$a);
                         $highErr = static::MMOBJ_ERROR;
                         $this->diagLog(static::MMOBJ_ERROR, 102, array( '#text' => 'The field %fieldName must be a date.',
                                                 '%fieldName' => $a));
