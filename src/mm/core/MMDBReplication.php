@@ -108,7 +108,7 @@ class MMDBReplication {
     {
         $sessionContext = $this->dbol->getVariable();
         $masterPKMap = new MMDbReplicaPKMap;
-        $masterPKMap->client_id = $sessionContext[client];
+        $masterPKMap->client_id = $sessionContext['client'];
         $masterPKMap->db_table = $dbTable;
         $masterPKMap->db_master_pk = $masterPK;
         $masterPKMapPK = $masterPKMap->compactPKIntoString();
@@ -134,7 +134,7 @@ class MMDBReplication {
     public function getMasterPK($dbTable, $clientPK)
     {
         $sessionContext = $this->dbol->getVariable();
-        $clientId = $sessionContext[client];
+        $clientId = $sessionContext['client'];
         $clientPKMap = new MMDbReplicaPKMap;
         $ret = $clientPKMap->readSingle("client_id = $clientId and db_table = '$dbTable' and db_client_pk = '$clientPK'");
         // check if exist
