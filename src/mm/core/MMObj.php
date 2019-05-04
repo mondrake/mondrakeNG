@@ -425,6 +425,7 @@ abstract class MMObj {
    error_log($this->$a);
                         $d = \DateTime::createFromFormat(\DateTime::ISO8601, $this->$a);
    error_log(var_export($d, true));
+   error_log(var_export($d->format(\DateTime::ISO8601), true));
                         if ($d && $d->format(\DateTime::ISO8601) === $this->$a) {
                             $this->$a = $d->format('Y-M-d');
                         }                        
