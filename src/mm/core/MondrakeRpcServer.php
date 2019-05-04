@@ -297,8 +297,8 @@ throw new \exception('test');*/
     public static function uploadDocs($xmlrpcmsg) {
       $encoder = new Encoder();
       $n = $encoder->decode($xmlrpcmsg);    
+error_log(var_export($n, true));
       $arr = $n[0];
-error_log(var_export($arr, true));
       $srvRunTime = new MMTimer;
       $srvRunTime->start();
       $diag = new MMDiag;
