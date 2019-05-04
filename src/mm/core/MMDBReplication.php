@@ -187,14 +187,14 @@ class MMDBReplication {
 
             // loads row array into object
             $re = new MMDBReplicationEntry;
-            $re->replicationSeq = $r[replication_seq];
-            $re->table = $r[db_table];
-            $re->primaryKey = $r[db_primary_key];
-            $re->operation = $r[db_operation];
-            $re->updateId = $r[db_audit_log_id];
-            $re->environmentId = $r[environment_id];
-            $re->clientId = $r[client_id];
-            $re->isPkSyncReq = $r[is_pk_sync_req];
+            $re->replicationSeq = $r['replication_seq'];
+            $re->table = $r['db_table'];
+            $re->primaryKey = $r['db_primary_key'];
+            $re->operation = $r['db_operation'];
+            $re->updateId = $r['db_audit_log_id'];
+            $re->environmentId = $r['environment_id'];
+            $re->clientId = $r['client_id'];
+            $re->isPkSyncReq = $r['is_pk_sync_req'];
 
             // the log entry was a dummy update for a change of primary key on the server, skip and continue
             if ($re->operation == 'u') {
