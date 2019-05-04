@@ -322,7 +322,7 @@ class MMDBReplication {
             if ($ctr)    {
                 $chunk['r'][$table] = $replTable;
             }
-            $table = $re->table;
+            $table = isset($re->table) ? $re->table : null;
         }
 
         // second traversal: traverses tree right->left for D
@@ -351,7 +351,7 @@ class MMDBReplication {
             if ($ctr)    {
                 $chunk['d'][$table] = $replTable;
             }
-            $table = $re->table;
+            $table = isset($re->table) ? $re->table : null;
         }
 
         return $highErr;
