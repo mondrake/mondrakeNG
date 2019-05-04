@@ -421,10 +421,14 @@ abstract class MMObj {
                         }
                         break;
                     case 'date':
+   error_log($a);
+   error_log($this->$a);
                         $d = \DateTime::createFromFormat(\DateTime::ISO8601, $this->$a);
+   error_log(var_export($d, true));
                         if ($d && $d->format(\DateTime::ISO8601) === $this->$a) {
                             $this->$a = $d->format('Y-M-d');
                         }                        
+   error_log($this->$a);
                         $comp = preg_split("/[\s\-:\.\/]+/", $this->$a);
                         if (count($comp) == 3)    {
                             if (is_numeric($comp[0]) and is_numeric($comp[1]) and is_numeric($comp[2]))
@@ -433,8 +437,6 @@ abstract class MMObj {
                                     break;
                                 }
                         }
-   error_log($a);
-   error_log($this->$a);
                         $highErr = static::MMOBJ_ERROR;
                         $this->diagLog(static::MMOBJ_ERROR, 102, array( '#text' => 'The field %fieldName must be a date.',
                                                 '%fieldName' => $a));
