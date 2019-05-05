@@ -24,7 +24,7 @@ interface DbolCallbackInterface
    *
    * @return array .
    */
-  public function getDbObjectName($object);
+    public function getDbObjectName($object);
 
   /**
    * Return table and column names for emulated sequences
@@ -33,7 +33,7 @@ interface DbolCallbackInterface
    *
    * @return array [0] = table name; [1] = column name
    */
-  public function getDbEmulatedSequenceQualifiers($sequence);
+    public function getDbEmulatedSequenceQualifiers($sequence);
 
   /**
    * .
@@ -42,7 +42,7 @@ interface DbolCallbackInterface
    *
    * @return array .
    */
-  public function getDbResolvedStatement($sqlStatement);
+    public function getDbResolvedStatement($sqlStatement);
 
   /**
    * sequencing methods
@@ -53,30 +53,21 @@ interface DbolCallbackInterface
    *
    * @return null
    */
-  public function getNextInsertSequence();
+    public function getNextInsertSequence();
 
   /**
    * .
    *
    * @return null
    */
-  public function getNextUpdateSequence();
+    public function getNextUpdateSequence();
 
   /**
    * .
    *
    * @return null
    */
-  public function getNextDeleteSequence();
-
-  /**
-   * .
-   *
-   * @param array $dbImage .
-   *
-   * @return null
-   */
-  public function getDbImageInsertSequence($dbImage);
+    public function getNextDeleteSequence();
 
   /**
    * .
@@ -85,7 +76,16 @@ interface DbolCallbackInterface
    *
    * @return null
    */
-  public function getDbImageUpdateSequence($dbImage);
+    public function getDbImageInsertSequence($dbImage);
+
+  /**
+   * .
+   *
+   * @param array $dbImage .
+   *
+   * @return null
+   */
+    public function getDbImageUpdateSequence($dbImage);
 
   /**
    * db image manipulation methods
@@ -100,7 +100,7 @@ interface DbolCallbackInterface
    *
    * @return null
    */
-  public function getTimestamp();
+    public function getTimestamp();
 
   /**
    * .
@@ -110,7 +110,7 @@ interface DbolCallbackInterface
    *
    * @return null
    */
-  public function setAuditPreInsert(&$obj, $dbolE);
+    public function setAuditPreInsert(&$obj, $dbolE);
 
   /**
    * .
@@ -121,7 +121,7 @@ interface DbolCallbackInterface
    *
    * @return null
    */
-  public function setAuditPreUpdate(&$obj, $dbolE, $primaryKeyChange);
+    public function setAuditPreUpdate(&$obj, $dbolE, $primaryKeyChange);
 
   /**
    * .
@@ -133,7 +133,7 @@ interface DbolCallbackInterface
    *
    * @return null
    */
-  public function logRowAudit($obj, $dbolE, $dbOp, $seq);
+    public function logRowAudit($obj, $dbolE, $dbOp, $seq);
 
   /**
    * .
@@ -145,7 +145,7 @@ interface DbolCallbackInterface
    *
    * @return null
    */
-  public function logFieldAudit($obj, $dbolE, $seq, $changes);
+    public function logFieldAudit($obj, $dbolE, $seq, $changes);
 
   /**
    * error management methods
@@ -165,7 +165,7 @@ interface DbolCallbackInterface
    *
    * @api
    */
-  public function diagnosticMessage($severity, $id, $text, $params, $qText, $className = null);
+    public function diagnosticMessage($severity, $id, $text, $params, $qText, $className = null);
 
   /**
    * Handles an error condition.
@@ -180,7 +180,7 @@ interface DbolCallbackInterface
    *
    * @api
    */
-  public function errorHandler($id, $text, $params, $qText, $className = null);
+    public function errorHandler($id, $text, $params, $qText, $className = null);
 
   /**
    * performance tracking methods
@@ -191,21 +191,21 @@ interface DbolCallbackInterface
    *
    * @return null
    */
-  public function startPerfTiming();
+    public function startPerfTiming();
 
   /**
    * .
    *
    * @return null
    */
-  public function stopPerfTiming();
+    public function stopPerfTiming();
 
   /**
    * .
    *
    * @return null
    */
-  public function elapsedPerfTiming();
+    public function elapsedPerfTiming();
 
   /**
    * .
@@ -219,5 +219,5 @@ interface DbolCallbackInterface
    *
    * @return null
    */
-  public function logSQLPerformance($sqlId, $sqlq, $startTime, $stopTime, $elapsed, $cnt);
+    public function logSQLPerformance($sqlId, $sqlq, $startTime, $stopTime, $elapsed, $cnt);
 }

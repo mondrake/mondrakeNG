@@ -11,12 +11,13 @@ namespace mondrakeNG\dbol;
  * @license  http://www.gnu.org/licenses/gpl.html GNU GPLv3
  * @link     http://github.com/mondrake/Dbol
  */
-class DbolEntry {
-  var $table;
-  var $tableProperties = array();
-  var $columns = array();
-  var $columnTypes = array();
-  var $PKColumns = array();
-  var $AIColumns = array();
-  var $columnProperties = array();
+class DbolEntry
+{
+    var $table;
+    var $tableProperties = array();
+    var $columns = array();
+    var $columnTypes = array();
+    var $PKColumns = array();
+    var $AIColumns = array();
+    var $columnProperties = array();
 }

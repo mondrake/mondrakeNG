@@ -12,7 +12,8 @@ class AXAccount extends MMObj
     public $env = null;
     public $pts = null;
 
-    public function defineChildObjs()    {
+    public function defineChildObjs()
+    {
         if (!isset(self::$childObjs[$this->className])) {
             self::$childObjs[$this->className] = array(
                 'accountCtl' => array (
@@ -34,13 +35,15 @@ class AXAccount extends MMObj
         }
     }
 
-    public function accountCtlInit(){
+    public function accountCtlInit()
+    {
         $this->accountCtl->environment_id = $this->environment_id;
         $this->accountCtl->account_id = $this->account_id;
-        $this->accountCtl->is_balance_calc_req = FALSE;
+        $this->accountCtl->is_balance_calc_req = false;
     }
 
-    private function _getPeriodTypes() {
+    private function _getPeriodTypes()
+    {
         $ret = array();
         $pt = new \stdClass;
         $pt->periodTypeId = $this->env->period_type_id;
@@ -55,7 +58,8 @@ class AXAccount extends MMObj
         return $ret;
     }
 
-    private function _resolveStartEndDates($dtFrom, $dtTo, $pt = null) {
+    private function _resolveStartEndDates($dtFrom, $dtTo, $pt = null)
+    {
         // the full range of dates for the day summary table starts from the first day of the period
         // where dtFrom is in, to the last day the period resulting by offsetting the period dtTo is
         // in to the number of futurePeriods
@@ -98,7 +102,8 @@ class AXAccount extends MMObj
         return array($dtStart, $dtEnd);
     }
 
-    private function _getDaySummaryTable($dtFrom, &$dtTo, &$isComplete, $debugMode = false) {
+    private function _getDaySummaryTable($dtFrom, &$dtTo, &$isComplete, $debugMode = false)
+    {
         // gets widest date range
         list($dtStart, $dtEnd) = $this->_resolveStartEndDates($dtFrom, $dtTo);
 
@@ -179,16 +184,16 @@ class AXAccount extends MMObj
         $trav = new RbppavlTraverser($tree);
         $el = $trav->first();
         while ($el) {
-            if(!$thSet) {
+            if (!$thSet) {
                 echo "<tr>";
-                foreach ($el as $a => $msg)    {
+                foreach ($el as $a => $msg) {
                     echo "<td>$a</td>";
                 }
                 echo "</tr>";
                 $thSet = true;
             }
             echo "<tr>";
-            foreach ($el as $msg)    {
+            foreach ($el as $msg) {
                 $x = str_replace(".", ",", $msg);
                 echo "<td align=right>$x</td>";
             }
@@ -262,9 +267,13 @@ class AXAccount extends MMObj
                 if ($prevPer) {
                     $prevBal = new AXAccountPeriodBalance;
                     $r = $prevBal->read(
-                            $this->environment_id, 'ACC', $this->account_id, $pt->periodTypeId,
-                            $prevPer->period_year, $prevPer->period
-                        );
+                        $this->environment_id,
+                        'ACC',
+                        $this->account_id,
+                        $pt->periodTypeId,
+                        $prevPer->period_year,
+                        $prevPer->period
+                    );
                     if ($r) {
                         $pxP->actualRunBal = $prevBal->period_closing_balance;
                         $pxP->unvalRunBal = $prevBal->period_uv_closing_balance;
@@ -356,7 +365,7 @@ class AXAccount extends MMObj
                 }
 
                 // moves to next period
-                if ($this->accountClass->account_class_type == 'F')    {
+                if ($this->accountClass->account_class_type == 'F') {
                     if ($dtI <= $dtNeedle) {
                         $pxI->actualRunBal = $px->actualRunBal;
                         $pxI->unvalRunBal  = $px->unvalRunBal;
@@ -374,11 +383,12 @@ class AXAccount extends MMObj
                             '%accountShort' => $this->account_short,
                             '%accountDesc' => $this->account_desc,
                             '#elapsed' => 1));
-         }
+        }
         return null;
     }
 
-    private function _flushDaySummary($dx, $px) {
+    private function _flushDaySummary($dx, $px)
+    {
         $db = new AXAccountDailyBalance;
         $r = $db->read($this->environment_id, 'ACC', $this->account_id, $px->periodTypeId, $dx->date);
         // apply day progressives
@@ -453,21 +463,25 @@ _END;
         return false;
     }
 
-    private function _flushPeriodSummary($px, $pxP) {
+    private function _flushPeriodSummary($px, $pxP)
+    {
         // period break in day iteration, prepare for period balance update
         $pb = new AXAccountPeriodBalance;
         $r = $pb->read(
-                $this->environment_id, 'ACC', $this->account_id, $px->periodTypeId,
-                $px->periodYear, $px->period
-            );
+            $this->environment_id,
+            'ACC',
+            $this->account_id,
+            $px->periodTypeId,
+            $px->periodYear,
+            $px->period
+        );
         // apply period progressives
-        if ($this->accountClass->account_class_type == 'F')    {
+        if ($this->accountClass->account_class_type == 'F') {
             $pb->period_opening_balance = $pxP->actualRunBal;
             $pb->period_closing_balance = $px->actualRunBal;
             $pb->period_uv_opening_balance = $pxP->unvalRunBal;
             $pb->period_uv_closing_balance = $px->unvalRunBal;
-        }
-        else    {
+        } else {
             $pb->period_opening_balance = 0;
             $pb->period_closing_balance = 0;
             $pb->period_uv_opening_balance = 0;
@@ -512,5 +526,4 @@ _END;
             }
         }
     }
-
 }

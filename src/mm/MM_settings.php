@@ -19,4 +19,3 @@ $dsn = [
 ];
 
 DbConnection::setConnection('MM', $dsn);
-

@@ -11,7 +11,8 @@ namespace mondrakeNG\mm\core;
  * @license    http://www.php.net/license/3_01.txt  PHP License 3.01
  * @link       http://pear.php.net/package/PackageName
  */
-class MMDBReplicationEntry {
+class MMDBReplicationEntry
+{
     public $replicationSeq;
     public $table;
     public $primaryKey;

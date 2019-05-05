@@ -4,4 +4,6 @@ namespace mondrakeNG\mm\classes;
 
 use mondrakeNG\mm\core\MMObj;
 
-class AMAccountClass extends MMOBj {}
+class AMAccountClass extends MMOBj
+{
+}

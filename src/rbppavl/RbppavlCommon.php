@@ -147,7 +147,8 @@ abstract class RbppavlCommon extends Rbppavl
         if ($setStatus) {
             // Rbppavl version and state
             $this->setStatus(
-                101, array('%version'       => RBPPAVL_VERSION_NUMBER . RBPPAVL_VERSION_STATE,)
+                101,
+                array('%version'       => RBPPAVL_VERSION_NUMBER . RBPPAVL_VERSION_STATE,)
             );
         }
         return array(RBPPAVL_VERSION_NUMBER, RBPPAVL_VERSION_STATE);
@@ -186,50 +187,52 @@ abstract class RbppavlCommon extends Rbppavl
             }
         }
         switch ($mode) {
-        case RBPPAVL_FIND_EXACT_MATCH:
-            // debug diagnostic - not found
-            if ($this->debugMode) {
-                $this->setStatus(8, array('%node' => $this->cbc->dump($data),));
-            }
-            return null;
-        case RBPPAVL_FIND_PREV_MATCH:
-            if ($dir == 0) {
-                $p = $this->nodePrev($tree, $q);
-            } else {
-                $p = $q;
-            }
-            if ($this->debugMode) {
-                if ($p) {
-                    // debug diagnostic - prev match found
-                    $this->setStatus(
-                        13, array('%node' => $this->cbc->dump($data),
-                                  '%prev' => $this->cbc->dump($p->data),)
-                    );
-                } else {
-                    // debug diagnostic - prev match not found
-                    $this->setStatus(14, array('%node' => $this->cbc->dump($data),));
+            case RBPPAVL_FIND_EXACT_MATCH:
+                // debug diagnostic - not found
+                if ($this->debugMode) {
+                    $this->setStatus(8, array('%node' => $this->cbc->dump($data),));
                 }
-            }
-            return $p;
-        case RBPPAVL_FIND_NEXT_MATCH:
-            if ($dir == 1) {
-                $p = $this->nodeNext($tree, $q);
-            } else {
-                $p = $q;
-            }
-            if ($this->debugMode) {
-                if ($p) {
-                    // debug diagnostic - next match found
-                    $this->setStatus(
-                        15, array('%node' => $this->cbc->dump($data),
-                                  '%prev' => $this->cbc->dump($p->data),)
-                    );
+                return null;
+            case RBPPAVL_FIND_PREV_MATCH:
+                if ($dir == 0) {
+                    $p = $this->nodePrev($tree, $q);
                 } else {
-                    // debug diagnostic - next match not found
-                    $this->setStatus(16, array('%node' => $this->cbc->dump($data),));
+                    $p = $q;
                 }
-            }
-            return $p;
+                if ($this->debugMode) {
+                    if ($p) {
+                        // debug diagnostic - prev match found
+                        $this->setStatus(
+                            13,
+                            array('%node' => $this->cbc->dump($data),
+                                  '%prev' => $this->cbc->dump($p->data),)
+                        );
+                    } else {
+                        // debug diagnostic - prev match not found
+                        $this->setStatus(14, array('%node' => $this->cbc->dump($data),));
+                    }
+                }
+                return $p;
+            case RBPPAVL_FIND_NEXT_MATCH:
+                if ($dir == 1) {
+                    $p = $this->nodeNext($tree, $q);
+                } else {
+                    $p = $q;
+                }
+                if ($this->debugMode) {
+                    if ($p) {
+                        // debug diagnostic - next match found
+                        $this->setStatus(
+                            15,
+                            array('%node' => $this->cbc->dump($data),
+                                  '%prev' => $this->cbc->dump($p->data),)
+                        );
+                    } else {
+                        // debug diagnostic - next match not found
+                        $this->setStatus(16, array('%node' => $this->cbc->dump($data),));
+                    }
+                }
+                return $p;
         }
     }
 
@@ -248,7 +251,7 @@ abstract class RbppavlCommon extends Rbppavl
         if ($node == null) {
             return $this->nodeLast($tree);
         } elseif ($node->link[0] == null) {
-            for ($p = $node, $q = $p->parent; ; $p = $q, $q = $q->parent) {
+            for ($p = $node, $q = $p->parent;; $p = $q, $q = $q->parent) {
                 if ($q == null or $p === $q->link[1]) {
                     return $q;
                 }
@@ -277,7 +280,7 @@ abstract class RbppavlCommon extends Rbppavl
         if ($node == null) {
             return $this->nodeFirst($tree);
         } elseif ($node->link[1] == null) {
-            for ($p = $node, $q = $p->parent; ; $p = $q, $q = $q->parent) {
+            for ($p = $node, $q = $p->parent;; $p = $q, $q = $q->parent) {
                 if ($q == null or $p === $q->link[0]) {
                     return $q;
                 }
@@ -351,7 +354,8 @@ abstract class RbppavlCommon extends Rbppavl
             // debug log method called
             if ($this->debugMode) {
                 $this->setStatus(
-                    1, array('%method' => $method,
+                    1,
+                    array('%method' => $method,
                              '%node'   => $this->cbc->dump($data), )
                 );
             }
@@ -499,17 +503,17 @@ abstract class RbppavlCommon extends Rbppavl
     protected function returnBytes($size)
     {
         switch (substr($size, -1)) {
-        case 'K':
-        case 'k':
-            return (int)$size * 1024;
-        case 'M':
-        case 'm':
-            return (int)$size * 1048576;
-        case 'G':
-        case 'g':
-            return (int)$size * 1073741824;
-        default:
-            return $size;
+            case 'K':
+            case 'k':
+                return (int)$size * 1024;
+            case 'M':
+            case 'm':
+                return (int)$size * 1048576;
+            case 'G':
+            case 'g':
+                return (int)$size * 1073741824;
+            default:
+                return $size;
         }
     }
 

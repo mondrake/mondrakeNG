@@ -7,7 +7,8 @@ use mondrakeNG\mm\core\MMUtils;
 
 class AMPeriodDate extends MMObj
 {
-    public function defineChildObjs()    {
+    public function defineChildObjs()
+    {
         if (!isset(self::$childObjs[$this->className])) {
             self::$childObjs[$this->className] = array(
                 'datePeriod' => array (
@@ -20,7 +21,8 @@ class AMPeriodDate extends MMObj
             );
         }
     }
-    public function getOffsetDate($offset) {
+    public function getOffsetDate($offset)
+    {
         $i = new self;
         $dtOffset = MMUtils::dateOffset($this->period_date, $offset);
         $i->read($this->period_type_id, $dtOffset);

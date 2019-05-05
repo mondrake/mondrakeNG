@@ -45,27 +45,27 @@ define('RBPPAVL_VERSION_STATE', 'beta');
  /**
  * 'Debug' status level or diagnostic
  */
-define('RBPPAVL_DEBUG',            7);
+define('RBPPAVL_DEBUG', 7);
 
 /**
  * 'Information' status level or diagnostic
  */
-define('RBPPAVL_INFO',             6);
+define('RBPPAVL_INFO', 6);
 
 /**
  * 'Notice' status level or diagnostic
  */
-define('RBPPAVL_NOTICE',           5);
+define('RBPPAVL_NOTICE', 5);
 
 /**
  * 'Warning' status level or diagnostic - partial failure not preventing further processing
  */
-define('RBPPAVL_WARNING',          4);
+define('RBPPAVL_WARNING', 4);
 
 /**
  * 'Error' status level or diagnostic - failure preventing further processing
  */
-define('RBPPAVL_ERROR',            3);
+define('RBPPAVL_ERROR', 3);
 
 /**
  * @} End of "defgroup severity_levels".
@@ -74,18 +74,18 @@ define('RBPPAVL_ERROR',            3);
 /**
  * Identifier for textual diagnostic strings
  */
-define('RBPPAVL_TEXT',             -1);
+define('RBPPAVL_TEXT', -1);
 
 /**
  * AVL Tree validation - success
  */
-define('RBPPAVL_VALIDATION_OK',              0);
+define('RBPPAVL_VALIDATION_OK', 0);
 
 /**
  * AVL Tree validation - failure - node's stored tree height not
  * consistent with computed height
  */
-define('RBPPAVL_VALIDATION_HEIGHT_FAILURE',  1);
+define('RBPPAVL_VALIDATION_HEIGHT_FAILURE', 1);
 
 /**
  * AVL Tree validation - failure - actual node's balance factor
@@ -96,17 +96,17 @@ define('RBPPAVL_VALIDATION_BALANCE_FAILURE', 2);
 /**
  * Find exact match
  */
-define('RBPPAVL_FIND_EXACT_MATCH',        0);
+define('RBPPAVL_FIND_EXACT_MATCH', 0);
 
 /**
  * Find exact match or closest previous node if exact not found
  */
-define('RBPPAVL_FIND_PREV_MATCH',         1);
+define('RBPPAVL_FIND_PREV_MATCH', 1);
 
 /**
  * Find exact match or closest next node if exact not found
  */
-define('RBPPAVL_FIND_NEXT_MATCH',         2);
+define('RBPPAVL_FIND_NEXT_MATCH', 2);
 
 /**
  * Baseline Rbppavl class.

@@ -17,26 +17,31 @@ namespace mondrakeNG\mm\core;
  */
 class MMDBReplicaSet extends MMRbppavlInterface
 {
-	public function compare($a, $b)	{
-		if ($a->replicationSeq > $b->replicationSeq)
-			return 1;
-		elseif ($a->replicationSeq < $b->replicationSeq)
-			return -1;
+    public function compare($a, $b)
+    {
+        if ($a->replicationSeq > $b->replicationSeq) {
+            return 1;
+        } elseif ($a->replicationSeq < $b->replicationSeq) {
+            return -1;
+        }
 
-		if ($a->table > $b->table)
-			return 1;
-		elseif ($a->table < $b->table)
-			return -1;
+        if ($a->table > $b->table) {
+            return 1;
+        } elseif ($a->table < $b->table) {
+            return -1;
+        }
 
-		if ($a->primaryKey > $b->primaryKey)
-			return 1;
-		elseif ($a->primaryKey < $b->primaryKey)
-			return -1;
-		else
-			return 0;
-	}
+        if ($a->primaryKey > $b->primaryKey) {
+            return 1;
+        } elseif ($a->primaryKey < $b->primaryKey) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
 
-	public function dump($a)	{
-		return "$a->table#$a->primaryKey ($a->operation/$a->updateId)";
-	}
+    public function dump($a)
+    {
+        return "$a->table#$a->primaryKey ($a->operation/$a->updateId)";
+    }
 }

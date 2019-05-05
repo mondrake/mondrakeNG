@@ -17,12 +17,16 @@ use mondrakeNG\mm\classes\MMDbReplicaInitChunk;
  * @license    http://www.php.net/license/3_01.txt  PHP License 3.01
  * @link       http://pear.php.net/package/PackageName
  */
-class MMDBReplication {
+class MMDBReplication
+{
 
     private $dbol = null;
 
-    public function __construct($dbol)  {
-        if (!$dbol) throw new \Exception('missing dbol in replication');
+    public function __construct($dbol)
+    {
+        if (!$dbol) {
+            throw new \Exception('missing dbol in replication');
+        }
         $this->dbol = $dbol;
     }
 
@@ -52,15 +56,15 @@ class MMDBReplication {
         $masterPKMap->db_master_pk = $masterPK;
         $masterPKMapPK = $masterPKMap->compactPKIntoString();
         $ret = $masterPKMap->read($masterPKMapPK);
-        if (is_null($ret))    {            // new map
+        if (is_null($ret)) {            // new map
             $masterPKMap->db_client_pk = $clientPK;
             $masterPKMap->is_client_aligned = $clientAligned;
             $masterPKMap->is_deleted_on_server = $serverDeleted;
             $masterPKMap->create();
-        }
-        else    {                        // update map
-            if (!empty($masterPKMap->db_client_pk) and ($clientPK <> $masterPKMap->db_client_pk))
+        } else {                        // update map
+            if (!empty($masterPKMap->db_client_pk) and ($clientPK <> $masterPKMap->db_client_pk)) {
                 throw new \Exception("xReplication error - Table: $dbTable - Attempt to map client PK '$clientPK' to master PK '$masterPK' failed. Already mapped to client PK '$masterPKMap->db_client_pk'.");
+            }
             $masterPKMap->db_client_pk = $clientPK;
             $masterPKMap->is_client_aligned = $clientAligned;
             $masterPKMap->is_deleted_on_server = $serverDeleted;
@@ -85,8 +89,8 @@ class MMDBReplication {
     {
         $masterPKMap = new MMDbReplicaPKMap;
         $ret = $masterPKMap->readMulti("db_table = '$dbTable' and db_master_pk = '$masterPK'");
-        if (count($ret) > 0)    {
-            foreach ($ret as $map)    {
+        if (count($ret) > 0) {
+            foreach ($ret as $map) {
                 $map->is_deleted_on_server = true;
                 $map->update();
             }
@@ -113,10 +117,9 @@ class MMDBReplication {
         $masterPKMap->db_master_pk = $masterPK;
         $masterPKMapPK = $masterPKMap->compactPKIntoString();
         $ret = $masterPKMap->read($masterPKMapPK);
-        if (is_null($ret))    {            // no map
+        if (is_null($ret)) {            // no map
             return null;
-        }
-        else    {                        // client map exists
+        } else {                        // client map exists
             return $masterPKMap->db_client_pk;
         }
     }
@@ -138,10 +141,9 @@ class MMDBReplication {
         $clientPKMap = new MMDbReplicaPKMap;
         $ret = $clientPKMap->readSingle("client_id = $clientId and db_table = '$dbTable' and db_client_pk = '$clientPK'");
         // check if exist
-        if (is_null($ret))    {            // no map
+        if (is_null($ret)) {            // no map
             return null;
-        }
-        else    {                        // client map exists
+        } else {                        // client map exists
             return $clientPKMap->db_master_pk;
         }
     }
@@ -204,61 +206,52 @@ class MMDBReplication {
             // loads object in binary tree
             $te = $tree->insert($re);
             // if duplicate found, decides replication op to take priority
-            if ($te)    {
-                if ($re->operation == 'D' && $te->operation == 'I')    {         // DELETE after INSERT in same log --> no replica op
-                    if ($re->clientId == $te->clientId)    {
+            if ($te) {
+                if ($re->operation == 'D' && $te->operation == 'I') {         // DELETE after INSERT in same log --> no replica op
+                    if ($re->clientId == $te->clientId) {
                         $x = $tree->delete($te);
-                        if ($x != NULL)    {
+                        if ($x != null) {
                             unset($x);
                             $ctr--;
                         }
-                    }
-                    else    {
+                    } else {
                         $te->operation = 'D';
                         $te->updateId = $re->updateId;
                         $te->clientId = $re->clientId;
                         $te->environmentId = $re->environmentId;
                     }
-                }
-                elseif ($re->operation == 'D' && $te->operation == 'U')    {    // DELETE after UPDATE in same log --> DELETE prevails
+                } elseif ($re->operation == 'D' && $te->operation == 'U') {    // DELETE after UPDATE in same log --> DELETE prevails
                     $te->operation = 'D';
                     $te->updateId = $re->updateId;
                     $te->clientId = $re->clientId;
                     $te->environmentId = $re->environmentId;
-                }
-                elseif ($re->operation == 'I' && $te->operation == 'D')    {    // INSERT after DELETE in same log --> INSERT prevails
+                } elseif ($re->operation == 'I' && $te->operation == 'D') {    // INSERT after DELETE in same log --> INSERT prevails
                     $te->operation = 'I';
                     $te->updateId = $re->updateId;
                     $te->clientId = $re->clientId;
                     $te->environmentId = $re->environmentId;
-                }
-                elseif ($re->operation == 'U' && $te->operation == 'U')    {    // UPDATE after UPDATE in same log --> update id
+                } elseif ($re->operation == 'U' && $te->operation == 'U') {    // UPDATE after UPDATE in same log --> update id
                     $te->updateId = $re->updateId;
                     $te->clientId = $re->clientId;
                     $te->environmentId = $re->environmentId;
-                }
-                elseif ($re->operation == 'U' && $te->operation == 'D')    {    // UPDATE after DELETE in same log --> impossible
+                } elseif ($re->operation == 'U' && $te->operation == 'D') {    // UPDATE after DELETE in same log --> impossible
                     throw new \Exception("UPDATE after DELETE in same log --> impossible");
-                }
-                elseif ($re->operation == 'U' && $te->operation == 'I')    {    // UPDATE after INSERT in same log --> INSERT prevails
+                } elseif ($re->operation == 'U' && $te->operation == 'I') {    // UPDATE after INSERT in same log --> INSERT prevails
                     $te->operation = 'I';
                     $te->updateId = $re->updateId;
                     $te->clientId = $re->clientId;
                     $te->environmentId = $re->environmentId;
-                }
-                elseif ($re->operation == 'I' && $te->operation == 'U')    {    // INSERT after UPDATE in same log --> impossible
+                } elseif ($re->operation == 'I' && $te->operation == 'U') {    // INSERT after UPDATE in same log --> impossible
                     throw new \Exception("INSERT after UPDATE in same log --> impossible");
                 }
-            }
-            else    {
+            } else {
                 $ctr++;
             }
         }
-        if ($ctr == $limit)    {
+        if ($ctr == $limit) {
             $lastUpdateId = $re->updateId;
             $complete = false;
-        }
-        else    {
+        } else {
             $lastUpdateId = $currUpdateId;
             $complete = true;
         }
@@ -279,7 +272,7 @@ class MMDBReplication {
         $trav = new RbppavlTraverser($tree);
         $re = $trav->first();
         $table = $re->table;
-        while ($table != NULL)    {
+        while ($table != null) {
             $cl = new MMClass;
             $cl->getClassFromTableName($table);
 
@@ -287,30 +280,30 @@ class MMDBReplication {
             $replRow= array();
             $replOp = array();
             $ctr = 0;
-            while ($re != NULL)    {
-                if ($re->table != $table)    {
+            while ($re != null) {
+                if ($re->table != $table) {
                     break;
                 }
-                if ($re->operation == 'D')    {
+                if ($re->operation == 'D') {
                     $re = $trav->next();
                     continue;
                 }
                 $src = new $cl->mm_class_name;
                 $res = $src->read($re->primaryKey);
-                if ($res)    {
+                if ($res) {
                     $replOp['op'] = $re->operation;
                     $replOp['masterPK'] = $re->primaryKey;
                     // if pk mapping required, checks and feeds if it exists otherwise prepares pk map
-                    if ($re->isPkSyncReq)    {
+                    if ($re->isPkSyncReq) {
                         $clientPk = $this->getClientPK($src->getDbObj()->table, $re->primaryKey);
-                        if(is_null($clientPk))    {    // creates pk map for client
+                        if (is_null($clientPk)) {    // creates pk map for client
                             $this->setPKMap($src->getDbObj()->table, $re->primaryKey, null, false);
                         }
                         $replOp['clientPK'] = $clientPk;
                     }
                     // loops the columns
                     $replOp['cols'] = array();
-                    foreach($src->getColumnProperties() as $c => $d)    {
+                    foreach ($src->getColumnProperties() as $c => $d) {
                         $replOp['cols'][$c] = $res->$c;
                     }
                     $replRow[$ctr] = $replOp;
@@ -319,7 +312,7 @@ class MMDBReplication {
                 }
                 $re = $trav->next();
             }
-            if ($ctr)    {
+            if ($ctr) {
                 $chunk['r'][$table] = $replTable;
             }
             $table = isset($re->table) ? $re->table : null;
@@ -328,16 +321,16 @@ class MMDBReplication {
         // second traversal: traverses tree right->left for D
         $re = $trav->last();
         $table = $re->table;
-        while ($table != NULL)    {
+        while ($table != null) {
             $replTable= array();
             $replRow= array();
             $replOp = array();
             $ctr = 0;
-            while ($re != NULL)    {
-                if($re->table != $table)    {
+            while ($re != null) {
+                if ($re->table != $table) {
                     break;
                 }
-                if($re->operation == 'I' || $re->operation == 'U')    {
+                if ($re->operation == 'I' || $re->operation == 'U') {
                     $re = $trav->prev();
                     continue;
                 }
@@ -348,7 +341,7 @@ class MMDBReplication {
                 $re = $trav->prev();
                 $ctr++;
             }
-            if ($ctr)    {
+            if ($ctr) {
                 $chunk['d'][$table] = $replTable;
             }
             $table = isset($re->table) ? $re->table : null;
@@ -384,13 +377,13 @@ class MMDBReplication {
         $cl->getClassFromTableName($dbTable);
 
         $complete = false;
-        if ($nextSeq == 0)    {                            // main entry point - first call
+        if ($nextSeq == 0) {                            // main entry point - first call
             // this is a first call, the table content are fetched and cached in a temp table (if # records
             // overcomes the $limit); else, no caching is required and the routine returns the current chunk for
             // initialization and $complete set to true
             $seq = 0;
             $inCycle = true;
-            while ($inCycle)    {
+            while ($inCycle) {
                 // initialises chunk
                 $chunk = array( 'r' => array() );
                 $replTable = array();
@@ -398,25 +391,28 @@ class MMDBReplication {
                 $ctr = 0;
                 while ($r = $this->dbol->fetchRow($qh)) {
                     $src = new $cl->mm_class_name;
-                    foreach($r as $a => $b) $src->$a = $b;
+                    foreach ($r as $a => $b) {
+                        $src->$a = $b;
+                    }
                     $src->primaryKeyString = $this->dbol->compactPKIntoString($src, $src->getDbObj());
                     $replOp = array();
                     $replOp['op'] = 'I';
                     $replOp['masterPK'] = $src->primaryKeyString;
                     // loops the columns
                     $replOp['cols'] = array();
-                    foreach ($src->getColumnProperties() as $c => $d)    {
+                    foreach ($src->getColumnProperties() as $c => $d) {
                         $replOp['cols'][$c] = $src->$c;
                     }
                     $replRow[$ctr] = $replOp;
                     $ctr++;
-                    if ($ctr == $limit)
+                    if ($ctr == $limit) {
                         break;
+                    }
                 }
                 $replTable['rows'] = $replRow;
                 $chunk['r'][$dbTable] = $replTable;
 
-                if ($r or $seq > 0)    {
+                if ($r or $seq > 0) {
                     $chunkCache = new MMDbReplicaInitChunk;
                     $chunkCache->client_id = $client;
                     $chunkCache->db_table = $dbTable;
@@ -426,11 +422,11 @@ class MMDBReplication {
                     $isCaching = true;
                 }
 
-                if (!$r)    {
+                if (!$r) {
                     $inCycle = false;
                 }
             }
-            if ($isCaching)    {
+            if ($isCaching) {
                 $chunkCache = new MMDbReplicaInitChunk;
                 $chunkCache->client_id = $client;
                 $chunkCache->db_table = $dbTable;
@@ -438,13 +434,11 @@ class MMDBReplication {
                 $chunkCache->primaryKeyString = $chunkCache->compactPKIntoString();
                 $chunkCache->read($chunkCache->primaryKeyString);
                 $chunk = unserialize($chunkCache->chunk);
-            }
-            else    {
+            } else {
                 $complete = true;
             }
             return $highErr;
-        }
-        else    {                            // secondary entry point - client requires a cached chunk
+        } else {                            // secondary entry point - client requires a cached chunk
             // deletes previous chunk
             $chunkCache = new MMDbReplicaInitChunk;
             $chunkCache->client_id = $client;
@@ -456,15 +450,13 @@ class MMDBReplication {
             $chunkCache->chunk_seq = $nextSeq;
             $chunkCache->primaryKeyString = $chunkCache->compactPKIntoString();
             $res = $chunkCache->read($chunkCache->primaryKeyString);
-            if ($res)    {
+            if ($res) {
                 $chunk = unserialize($chunkCache->chunk);
-            }
-            else    {
+            } else {
                 $chunk = null;
                 $complete = true;
             }
         }
         return $highErr;
     }
-
 }

@@ -24,7 +24,7 @@ class MMRbppavlInterface implements RbppavlCbInterface
     public function diagnosticMessage($severity, $id, $text, $params, $qText, $className = null)
     {
         $params['#text'] = $text;
-        if (empty($className))    {
+        if (empty($className)) {
             $className = get_class($this);
         }
         $this->diag->sLog($severity, $className, $id, $params);

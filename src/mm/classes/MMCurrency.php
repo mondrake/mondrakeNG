@@ -4,4 +4,6 @@ namespace mondrakeNG\mm\classes;
 
 use mondrakeNG\mm\core\MMObj;
 
-class MMCurrency extends MMObj {}
+class MMCurrency extends MMObj
+{
+}

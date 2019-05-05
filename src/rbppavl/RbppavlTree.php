@@ -367,7 +367,8 @@ class RbppavlTree extends RbppavlCommon
         // debug diagnostic    - deleted
         if ($this->debugMode) {
             $this->setStatus(
-                10, array('%nodeType'     => $nodeType,
+                10,
+                array('%nodeType'     => $nodeType,
                           '%node'         => $this->cbc->dump($p->data),
                           '%replaceBy'    => ($w ? "'" . $this->cbc->dump($w->data) . "'" : $this->txt('none')),
                           '%count'        => $this->_count,)
@@ -393,7 +394,8 @@ class RbppavlTree extends RbppavlCommon
                     $this->_statistics['self']++;
                     if ($this->debugMode) {
                         $this->setStatus(
-                            6, array('%node'         => $this->cbc->dump($y->data),
+                            6,
+                            array('%node'         => $this->cbc->dump($y->data),
                                      '%balance'      => $y->balance(),)
                         );
                     }
@@ -402,7 +404,8 @@ class RbppavlTree extends RbppavlCommon
                     // debug diagnostic    - decrease height
                     if ($this->debugMode) {
                         $this->setStatus(
-                            11, array('%node'         => $this->cbc->dump($y->data),
+                            11,
+                            array('%node'         => $this->cbc->dump($y->data),
                                       '%height'       => $y->height,
                                       '%balance'      => $y->balance(),)
                         );
@@ -474,7 +477,8 @@ class RbppavlTree extends RbppavlCommon
             // debug diagnostic    - inserted
             if ($this->debugMode) {
                 $this->setStatus(
-                    4, array('%node'         => $this->cbc->dump($n->data),
+                    4,
+                    array('%node'         => $this->cbc->dump($n->data),
                              '%direction'    => ($dir == 0 ? $this->txt('left') : $this->txt('right')),
                              '%parent'       => $this->cbc->dump($q->data),
                              '%count'        => $this->_count,)
@@ -485,7 +489,8 @@ class RbppavlTree extends RbppavlCommon
             // debug diagnostic    - inserted root
             if ($this->debugMode) {
                 $this->setStatus(
-                    3, array('%node'         => $this->cbc->dump($n->data),
+                    3,
+                    array('%node'         => $this->cbc->dump($n->data),
                              '%count'        => $this->_count,)
                 );
             }
@@ -498,14 +503,15 @@ class RbppavlTree extends RbppavlCommon
         for ($p = $n; $p !== $y; $p = $q) {
             $q = $p->parent;
             $dir = ($q->link[0] === $p) ? 0 : 1;
-            if (   ($dir == 0 and $q->balance() >= 0)
+            if (($dir == 0 and $q->balance() >= 0)
                 or ($dir == 1 and $q->balance() <= 0)
             ) {
                 $this->_statistics['self']++;
                 // debug diagnostic    - self balancing
                 if ($this->debugMode) {
                     $this->setStatus(
-                        6, array('%node'       => $this->cbc->dump($q->data),
+                        6,
+                        array('%node'       => $this->cbc->dump($q->data),
                                  '%balance'    => $q->balance(),)
                     );
                 }
@@ -515,7 +521,8 @@ class RbppavlTree extends RbppavlCommon
                 // debug diagnostic    - height increase
                 if ($this->debugMode) {
                     $this->setStatus(
-                        5, array('%node'         => $this->cbc->dump($q->data),
+                        5,
+                        array('%node'         => $this->cbc->dump($q->data),
                                  '%height'       => $q->height,
                                  '%balance'      => $q->balance(),)
                     );
@@ -547,7 +554,8 @@ class RbppavlTree extends RbppavlCommon
                 $this->_statistics['ll']++;
                 if ($this->debugMode) {
                     $this->setStatus(
-                        7, array('%node'         => $this->cbc->dump($y->data),
+                        7,
+                        array('%node'         => $this->cbc->dump($y->data),
                                  '%rotationType' => 'LL',
                                  '%balance'      => $y->balance(),)
                     );
@@ -570,7 +578,8 @@ class RbppavlTree extends RbppavlCommon
                 $this->_statistics['lr']++;
                 if ($this->debugMode) {
                     $this->setStatus(
-                        7, array('%node'         => $this->cbc->dump($y->data),
+                        7,
+                        array('%node'         => $this->cbc->dump($y->data),
                                  '%rotationType' => 'LR',
                                  '%balance'      => $y->balance(),)
                     );
@@ -602,7 +611,8 @@ class RbppavlTree extends RbppavlCommon
                 $this->_statistics['rr']++;
                 if ($this->debugMode) {
                     $this->setStatus(
-                        7, array('%node'         => $this->cbc->dump($y->data),
+                        7,
+                        array('%node'         => $this->cbc->dump($y->data),
                                  '%rotationType' => 'RR',
                                  '%balance'      => $y->balance(),)
                     );
@@ -625,7 +635,8 @@ class RbppavlTree extends RbppavlCommon
                 $this->_statistics['rl']++;
                 if ($this->debugMode) {
                     $this->setStatus(
-                        7, array('%node'         => $this->cbc->dump($y->data),
+                        7,
+                        array('%node'         => $this->cbc->dump($y->data),
                                  '%rotationType' => 'RL',
                                  '%balance'      => $y->balance(),)
                     );
@@ -686,7 +697,8 @@ class RbppavlTree extends RbppavlCommon
         if ($failingNode) {
             // validation failure
             $this->setStatus(
-                1001, array('%node'          => $this->cbc->dump($failingNode->data),
+                1001,
+                array('%node'          => $this->cbc->dump($failingNode->data),
                             '%failureType'   => ($status == RBPPAVL_VALIDATION_HEIGHT_FAILURE ?
                                                 $this->txt('height') :
                                                 $this->txt('balance')),
@@ -803,12 +815,14 @@ class RbppavlTree extends RbppavlCommon
         if ($setStatus) {
             // diagnose statistics
             $this->setStatus(
-                1002, array('%balance'       => $this->_statistics['balance_factor'],
+                1002,
+                array('%balance'       => $this->_statistics['balance_factor'],
                             '%count'         => $this->_statistics['count'],
                             '%height'        => $this->_statistics['height'],)
             );
             $this->setStatus(
-                1003, array('%ins'           => $this->_statistics['ins'],
+                1003,
+                array('%ins'           => $this->_statistics['ins'],
                             '%att_ins'       => $this->_statistics['att_ins'],
                             '%repl'          => $this->_statistics['repl'],
                             '%att_repl'      => $this->_statistics['att_repl'],
@@ -816,7 +830,8 @@ class RbppavlTree extends RbppavlCommon
                             '%att_del'       => $this->_statistics['att_del'],)
             );
             $this->setStatus(
-                1004, array('%self'          => $this->_statistics['self'],
+                1004,
+                array('%self'          => $this->_statistics['self'],
                             '%rotations'     => $this->_statistics['ll'] +
                                                 $this->_statistics['lr'] +
                                                 $this->_statistics['rr'] +

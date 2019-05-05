@@ -4,4 +4,6 @@ namespace mondrakeNG\mm\classes;
 
 use mondrakeNG\mm\core\MMObj;
 
-class MMDbReplicaTable extends MMOBj {}
+class MMDbReplicaTable extends MMOBj
+{
+}

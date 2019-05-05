@@ -2,11 +2,13 @@
 
 namespace mondrakeNG\dbol\DBMS;
 
-class Mysql {
+class Mysql
+{
 
-  public function getListTablesSQL() {
-    return "SHOW TABLE STATUS";
-  }
+    public function getListTablesSQL()
+    {
+        return "SHOW TABLE STATUS";
+    }
 
   /**
    * Returns a list of tables in the connected database
@@ -22,23 +24,23 @@ class Mysql {
    *
    * @return array the list of tables
    */
-  public function listTables($res, $prefix = NULL) {
-    $tables = array();
-    foreach ($res as $a => $b) {
-      $comment = $b['Comment'];
-      $offs = strpos($comment, 'InnoDB free');
-      if ($offs !== FALSE)    {
-        $comment = substr($comment, 0, $offs);
-        $comment = substr($comment, 0, strrpos($comment, ';'));
-      }
-      $entry = array();
-      $entry['description'] = $comment;
-      $entry['rows'] = $b['Rows'];
-      $entry['storageMethod'] = $b['Engine'];
-      $entry['collation'] = $b['Collation'];
-      $tables[$b['Name']] = $entry;
+    public function listTables($res, $prefix = null)
+    {
+        $tables = array();
+        foreach ($res as $a => $b) {
+            $comment = $b['Comment'];
+            $offs = strpos($comment, 'InnoDB free');
+            if ($offs !== false) {
+                $comment = substr($comment, 0, $offs);
+                $comment = substr($comment, 0, strrpos($comment, ';'));
+            }
+            $entry = array();
+            $entry['description'] = $comment;
+            $entry['rows'] = $b['Rows'];
+            $entry['storageMethod'] = $b['Engine'];
+            $entry['collation'] = $b['Collation'];
+            $tables[$b['Name']] = $entry;
+        }
+        return $tables;
     }
-    return $tables;
-  }
-
 }
