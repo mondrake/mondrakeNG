@@ -79,9 +79,9 @@ abstract class RbppavlCommon extends Rbppavl
      *
      * @type array
      */
-    protected $status = array('level'         => RBPPAVL_NOTICE,
+    protected $status = ['level'         => RBPPAVL_NOTICE,
                               'code'          => 100,
-                              'messageParams' => null);
+                              'messageParams' => null];
 
 
     /**
@@ -97,7 +97,7 @@ abstract class RbppavlCommon extends Rbppavl
     public function __call($name, $args)
     {
         // undefined method called
-        $this->setStatus(104, array('%method' => $name,));
+        $this->setStatus(104, ['%method' => $name,]);
     }
 
     /**
@@ -112,7 +112,7 @@ abstract class RbppavlCommon extends Rbppavl
     public function __get($name)
     {
         // inaccessible property
-        $this->setStatus(105, array('%property' => $name,));
+        $this->setStatus(105, ['%property' => $name,]);
     }
 
     /**
@@ -128,7 +128,7 @@ abstract class RbppavlCommon extends Rbppavl
     public function __set($name, $value)
     {
         // inaccessible property
-        $this->setStatus(105, array('%property' => $name,));
+        $this->setStatus(105, ['%property' => $name,]);
     }
 
     /**
@@ -148,10 +148,10 @@ abstract class RbppavlCommon extends Rbppavl
             // Rbppavl version and state
             $this->setStatus(
                 101,
-                array('%version'       => RBPPAVL_VERSION_NUMBER . RBPPAVL_VERSION_STATE,)
+                ['%version'       => RBPPAVL_VERSION_NUMBER . RBPPAVL_VERSION_STATE,]
             );
         }
-        return array(RBPPAVL_VERSION_NUMBER, RBPPAVL_VERSION_STATE);
+        return [RBPPAVL_VERSION_NUMBER, RBPPAVL_VERSION_STATE];
     }
 
     /**
@@ -174,7 +174,7 @@ abstract class RbppavlCommon extends Rbppavl
             if ($cmp == 0) {
                 // debug diagnostic - found
                 if ($this->debugMode) {
-                    $this->setStatus(9, array('%node' => $this->cbc->dump($p->data),));
+                    $this->setStatus(9, ['%node' => $this->cbc->dump($p->data),]);
                 }
                 return $p;
             }
@@ -190,7 +190,7 @@ abstract class RbppavlCommon extends Rbppavl
             case RBPPAVL_FIND_EXACT_MATCH:
                 // debug diagnostic - not found
                 if ($this->debugMode) {
-                    $this->setStatus(8, array('%node' => $this->cbc->dump($data),));
+                    $this->setStatus(8, ['%node' => $this->cbc->dump($data),]);
                 }
                 return null;
             case RBPPAVL_FIND_PREV_MATCH:
@@ -204,12 +204,12 @@ abstract class RbppavlCommon extends Rbppavl
                         // debug diagnostic - prev match found
                         $this->setStatus(
                             13,
-                            array('%node' => $this->cbc->dump($data),
-                                  '%prev' => $this->cbc->dump($p->data),)
+                            ['%node' => $this->cbc->dump($data),
+                                  '%prev' => $this->cbc->dump($p->data),]
                         );
                     } else {
                         // debug diagnostic - prev match not found
-                        $this->setStatus(14, array('%node' => $this->cbc->dump($data),));
+                        $this->setStatus(14, ['%node' => $this->cbc->dump($data),]);
                     }
                 }
                 return $p;
@@ -224,12 +224,12 @@ abstract class RbppavlCommon extends Rbppavl
                         // debug diagnostic - next match found
                         $this->setStatus(
                             15,
-                            array('%node' => $this->cbc->dump($data),
-                                  '%prev' => $this->cbc->dump($p->data),)
+                            ['%node' => $this->cbc->dump($data),
+                                  '%prev' => $this->cbc->dump($p->data),]
                         );
                     } else {
                         // debug diagnostic - next match not found
-                        $this->setStatus(16, array('%node' => $this->cbc->dump($data),));
+                        $this->setStatus(16, ['%node' => $this->cbc->dump($data),]);
                     }
                 }
                 return $p;
@@ -348,15 +348,15 @@ abstract class RbppavlCommon extends Rbppavl
     {
         if (empty($data) or !is_object($data)) {
             // incorrect data input
-            $this->setStatus(107, array('%method' => $method,));
+            $this->setStatus(107, ['%method' => $method,]);
             return false;
         } else {
             // debug log method called
             if ($this->debugMode) {
                 $this->setStatus(
                     1,
-                    array('%method' => $method,
-                             '%node'   => $this->cbc->dump($data), )
+                    ['%method' => $method,
+                             '%node'   => $this->cbc->dump($data), ]
                 );
             }
             return true;
@@ -553,50 +553,50 @@ abstract class RbppavlCommon extends Rbppavl
         static $t;
         // initializes the message table
         if (!isset($t)) {
-            $t = array(
-                1         => array(RBPPAVL_DEBUG,   '%method \'%node\''),
-                2         => array(RBPPAVL_DEBUG,   'node \'%node\' exists already'),
-                3         => array(RBPPAVL_DEBUG,   'inserted *root* node \'%node\'; count: %count'),
-                4         => array(RBPPAVL_DEBUG,   'inserted node \'%node\' %direction of node \'%parent\'; count: %count'),
-                5         => array(RBPPAVL_DEBUG,   'height increase in node \'%node\'; new height: %height new balance: %balance'),
-                6         => array(RBPPAVL_DEBUG,   'self-balancing in node \'%node\'; new balance: %balance'),
-                7         => array(RBPPAVL_DEBUG,   '%rotationType rotation on node \'%node\' (balance: %balance)'),
-                8         => array(RBPPAVL_DEBUG,   'node \'%node\' not found'),
-                9         => array(RBPPAVL_DEBUG,   'node \'%node\' found'),
-                10        => array(RBPPAVL_DEBUG,   'deleted node \'%node\',%nodeType; replacing node: %replaceBy; count: %count'),
-                11        => array(RBPPAVL_DEBUG,   'height decrease in node \'%node\'; new height: %height new balance: %balance'),
-                12        => array(RBPPAVL_DEBUG,   'Wiped %ctr nodes while destroying tree object'),
-                13        => array(RBPPAVL_DEBUG,   'node \'%node\' not found, closest previous \'%prev\''),
-                14        => array(RBPPAVL_DEBUG,   'node \'%node\' not found, no closest previous'),
-                15        => array(RBPPAVL_DEBUG,   'node \'%node\' not found, closest next \'%prev\''),
-                16        => array(RBPPAVL_DEBUG,   'node \'%node\' not found, no closest next'),
-                100       => array(RBPPAVL_INFO,    'OK'),
-                101       => array(RBPPAVL_INFO,    '%class - Version %version'),
-                102       => array(RBPPAVL_WARNING, 'Empty tree.'),
-                103       => array(RBPPAVL_WARNING, 'Not enough memory while inserting node \'%node\'.'),
-                104       => array(RBPPAVL_ERROR,   'Undefined or inaccessible method %class::%method invoked'),
-                105       => array(RBPPAVL_ERROR,   'Undefined or inaccessible property %class::%property invoked'),
-                106       => array(RBPPAVL_ERROR,   'No callback class specified when instantiating %class'),
-                107       => array(RBPPAVL_WARNING, 'Wrong or undefined data object passed to %class::%method. Only non-null objects accepted.'),
-                1000      => array(RBPPAVL_NOTICE,  'Tree validation OK; nodes count: %count'),
-                1001      => array(RBPPAVL_ERROR,   'Tree validation *failed* on node: \'%node\' (%failureType failure; height: %height balance: %balance)'),
-                1002      => array(RBPPAVL_INFO,    'Tree statistics: Balance factor %balance; Node count: %count; Tree height: %height'),
-                1003      => array(RBPPAVL_INFO,    'Tree statistics: Inserts: (%ins/%att_ins) Replaces: (%repl/%att_repl) Deletes: (%del/%att_del)'),
-                1004      => array(RBPPAVL_INFO,    'Tree statistics: Self-balances: %self; Rotations: %rotations (RR: %rr, RL: %rl, LL: %ll, LR: %lr)'),
+            $t = [
+                1         => [RBPPAVL_DEBUG,   '%method \'%node\''],
+                2         => [RBPPAVL_DEBUG,   'node \'%node\' exists already'],
+                3         => [RBPPAVL_DEBUG,   'inserted *root* node \'%node\'; count: %count'],
+                4         => [RBPPAVL_DEBUG,   'inserted node \'%node\' %direction of node \'%parent\'; count: %count'],
+                5         => [RBPPAVL_DEBUG,   'height increase in node \'%node\'; new height: %height new balance: %balance'],
+                6         => [RBPPAVL_DEBUG,   'self-balancing in node \'%node\'; new balance: %balance'],
+                7         => [RBPPAVL_DEBUG,   '%rotationType rotation on node \'%node\' (balance: %balance)'],
+                8         => [RBPPAVL_DEBUG,   'node \'%node\' not found'],
+                9         => [RBPPAVL_DEBUG,   'node \'%node\' found'],
+                10        => [RBPPAVL_DEBUG,   'deleted node \'%node\',%nodeType; replacing node: %replaceBy; count: %count'],
+                11        => [RBPPAVL_DEBUG,   'height decrease in node \'%node\'; new height: %height new balance: %balance'],
+                12        => [RBPPAVL_DEBUG,   'Wiped %ctr nodes while destroying tree object'],
+                13        => [RBPPAVL_DEBUG,   'node \'%node\' not found, closest previous \'%prev\''],
+                14        => [RBPPAVL_DEBUG,   'node \'%node\' not found, no closest previous'],
+                15        => [RBPPAVL_DEBUG,   'node \'%node\' not found, closest next \'%prev\''],
+                16        => [RBPPAVL_DEBUG,   'node \'%node\' not found, no closest next'],
+                100       => [RBPPAVL_INFO,    'OK'],
+                101       => [RBPPAVL_INFO,    '%class - Version %version'],
+                102       => [RBPPAVL_WARNING, 'Empty tree.'],
+                103       => [RBPPAVL_WARNING, 'Not enough memory while inserting node \'%node\'.'],
+                104       => [RBPPAVL_ERROR,   'Undefined or inaccessible method %class::%method invoked'],
+                105       => [RBPPAVL_ERROR,   'Undefined or inaccessible property %class::%property invoked'],
+                106       => [RBPPAVL_ERROR,   'No callback class specified when instantiating %class'],
+                107       => [RBPPAVL_WARNING, 'Wrong or undefined data object passed to %class::%method. Only non-null objects accepted.'],
+                1000      => [RBPPAVL_NOTICE,  'Tree validation OK; nodes count: %count'],
+                1001      => [RBPPAVL_ERROR,   'Tree validation *failed* on node: \'%node\' (%failureType failure; height: %height balance: %balance)'],
+                1002      => [RBPPAVL_INFO,    'Tree statistics: Balance factor %balance; Node count: %count; Tree height: %height'],
+                1003      => [RBPPAVL_INFO,    'Tree statistics: Inserts: (%ins/%att_ins) Replaces: (%repl/%att_repl) Deletes: (%del/%att_del)'],
+                1004      => [RBPPAVL_INFO,    'Tree statistics: Self-balances: %self; Rotations: %rotations (RR: %rr, RL: %rl, LL: %ll, LR: %lr)'],
 
-                'none'       => array(RBPPAVL_TEXT,   '*none*'),
-                'right'      => array(RBPPAVL_TEXT,   'right'),
-                'left'       => array(RBPPAVL_TEXT,   'left'),
-                'root'       => array(RBPPAVL_TEXT,   '*root*'),
-                'leaf'       => array(RBPPAVL_TEXT,   'leaf'),
-                'height'     => array(RBPPAVL_TEXT,   'height'),
-                'balance'    => array(RBPPAVL_TEXT,   'balance'),
-                'p-noleft'   => array(RBPPAVL_TEXT,   'no left subtree'),
-                'p-noright'  => array(RBPPAVL_TEXT,   'no right subtree'),
-                'r-noleft'   => array(RBPPAVL_TEXT,   'no left child on right subtree \'%node\''),
-                'r-left'     => array(RBPPAVL_TEXT,   'left child on right subtree \'%node\''),
-                'internal'   => array(RBPPAVL_TEXT,   'internal,'),
-            );
+                'none'       => [RBPPAVL_TEXT,   '*none*'],
+                'right'      => [RBPPAVL_TEXT,   'right'],
+                'left'       => [RBPPAVL_TEXT,   'left'],
+                'root'       => [RBPPAVL_TEXT,   '*root*'],
+                'leaf'       => [RBPPAVL_TEXT,   'leaf'],
+                'height'     => [RBPPAVL_TEXT,   'height'],
+                'balance'    => [RBPPAVL_TEXT,   'balance'],
+                'p-noleft'   => [RBPPAVL_TEXT,   'no left subtree'],
+                'p-noright'  => [RBPPAVL_TEXT,   'no right subtree'],
+                'r-noleft'   => [RBPPAVL_TEXT,   'no left child on right subtree \'%node\''],
+                'r-left'     => [RBPPAVL_TEXT,   'left child on right subtree \'%node\''],
+                'internal'   => [RBPPAVL_TEXT,   'internal,'],
+            ];
         }
         // if $id input is an array, replaces the default massage table with the input
         if (is_array($id)) {

@@ -10,14 +10,14 @@ class AXPortfolioItem extends MMObj
     public function defineChildObjs()
     {
         if (!isset(self::$childObjs[$this->className])) {
-            self::$childObjs[$this->className] = array(
-                'item' => array (
+            self::$childObjs[$this->className] = [
+                'item' => [
                     'className'         =>  MM_CLASS_PATH . 'AXItem',
                     'cardinality'       =>  'one',
-                    'parameters'        =>  array( 'item_id', ),
+                    'parameters'        =>  [ 'item_id', ],
                     'loading'           =>  'onRead',
-                ),
-            );
+                ],
+            ];
         }
     }
 }

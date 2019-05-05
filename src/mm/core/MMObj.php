@@ -16,8 +16,8 @@ abstract class MMObj
     const MMOBJ_ERROR = 3;
 
     protected static $dbol = null;
-    protected static $dbObj = array();
-    protected static $childObjs = array();
+    protected static $dbObj = [];
+    protected static $childObjs = [];
     protected $diag = null;
     protected $className;
 
@@ -25,13 +25,13 @@ abstract class MMObj
     {
       // dbol
         if (self::$dbol === null) {
-            $dbolParams = array(
+            $dbolParams = [
             'decimalPrecision'  => DB_DECIMALPRECISION,
             'callbackClass'     => '\\mondrakeNG\\mm\\core\\MMObjDbolCallback',
             'perfLogging'       => DB_QUERY_PERFORMANCE_LOGGING,
             'perfThreshold'     => DB_QUERY_PERFORMANCE_THRESHOLD,
             'user'              => 1,
-            );
+            ];
             self::$dbol = new Dbol('MM', $dbolParams);
         }
       // diag
@@ -61,7 +61,7 @@ abstract class MMObj
             $sqlq = "SELECT * FROM #pfx#mm_classes where mm_class_name = '$xxx'";
             $res = self::$dbol->query($sqlq, $limit = null, $offset = null, $sqlId = null, $skipPerfLog = true);
             if (count($res) == 0) {
-                $this->diagLog(static::MMOBJ_ERROR, 100, array('#text' => "Class $this->className not found in repository.",), 'MMObj', true);
+                $this->diagLog(static::MMOBJ_ERROR, 100, ['#text' => "Class $this->className not found in repository.",], 'MMObj', true);
             }
             self::$dbObj[$this->className]->table = $res[0]['db_table_name'];
             self::$dbObj[$this->className]->tableProperties['auditLogLevel'] = $res[0]['db_table_audit_log_level'];
@@ -76,12 +76,12 @@ abstract class MMObj
 
             self::$dbol->setColumnProperty(
                 self::$dbObj[$this->className],
-                array (
+                [
                 'create_by',
                 'create_ts',
                 'update_by',
                 'update_ts',
-                'update_id'),
+                'update_id'],
                 'editable',
                 false
             );
@@ -245,8 +245,8 @@ abstract class MMObj
         $clientPKMap = func_get_args(0);
         $sessionContext = self::$dbol->getVariable();
         if (empty($sessionContext['user'])) {
-            $this->diagLog(static::MMOBJ_ERROR, 999, array('#text' => 'Session context not set. Table: %table',
-                                                       '%table' => self::$dbObj[$this->className]->table,));
+            $this->diagLog(static::MMOBJ_ERROR, 999, ['#text' => 'Session context not set. Table: %table',
+                                                       '%table' => self::$dbObj[$this->className]->table,]);
         }
 
         // check pk map
@@ -304,8 +304,8 @@ abstract class MMObj
     {
         $sessionContext = self::$dbol->getVariable();
         if (empty($sessionContext['user'])) {
-            $this->diagLog(static::MMOBJ_ERROR, 999, array('#text' => 'Session context not set. Table: %table',
-                                                       '%table' => self::$dbObj[$this->className]->table,));
+            $this->diagLog(static::MMOBJ_ERROR, 999, ['#text' => 'Session context not set. Table: %table',
+                                                       '%table' => self::$dbObj[$this->className]->table,]);
         }
 
 //        try    {
@@ -324,8 +324,8 @@ abstract class MMObj
     {
         $sessionContext = self::$dbol->getVariable();
         if (empty($sessionContext['user'])) {
-            $this->diagLog(static::MMOBJ_ERROR, 999, array('#text' => 'Session context not set. Table: %table',
-                                                       '%table' => self::$dbObj[$this->className]->table,));
+            $this->diagLog(static::MMOBJ_ERROR, 999, ['#text' => 'Session context not set. Table: %table',
+                                                       '%table' => self::$dbObj[$this->className]->table,]);
         }
         // delete children objects
         if (!empty(self::$childObjs[$this->className])) {
@@ -433,8 +433,8 @@ abstract class MMObj
                             break;
                         } elseif (!is_numeric($this->$a)) {
                             $highErr = static::MMOBJ_ERROR;
-                            $this->diagLog(static::MMOBJ_ERROR, 100, array( '#text' => 'The field %fieldName must be numeric.',
-                                                    '%fieldName' => $a));
+                            $this->diagLog(static::MMOBJ_ERROR, 100, [ '#text' => 'The field %fieldName must be numeric.',
+                                                    '%fieldName' => $a]);
                             break;
                         }
                         break;
@@ -445,9 +445,9 @@ abstract class MMObj
                         }
                         if (!($this->$a >= -1 and $this->$a <= 1)) {
                             $highErr = static::MMOBJ_ERROR;
-                            $this->diagLog(static::MMOBJ_ERROR, 101, array( '#text' => 'The field %fieldName must be boolean. Val %val',
+                            $this->diagLog(static::MMOBJ_ERROR, 101, [ '#text' => 'The field %fieldName must be boolean. Val %val',
                                                     '%val' => $this->$a,
-                                                    '%fieldName' => $a));
+                                                    '%fieldName' => $a]);
                         }
                         break;
                     case 'date':
@@ -467,21 +467,21 @@ abstract class MMObj
                             }
                         }
                         $highErr = static::MMOBJ_ERROR;
-                        $this->diagLog(static::MMOBJ_ERROR, 102, array( '#text' => 'The field %fieldName must be a date.',
-                                                '%fieldName' => $a));
+                        $this->diagLog(static::MMOBJ_ERROR, 102, [ '#text' => 'The field %fieldName must be a date.',
+                                                '%fieldName' => $a]);
                         break;
                     case 'time':
                         if (!strtotime($this->$a)) {
                             $highErr = static::MMOBJ_ERROR;
-                            $this->diagLog(static::MMOBJ_ERROR, 103, array( '#text' => 'The field %fieldName must be a time.',
-                                                    '%fieldName' => $a));
+                            $this->diagLog(static::MMOBJ_ERROR, 103, [ '#text' => 'The field %fieldName must be a time.',
+                                                    '%fieldName' => $a]);
                         }
                         break;
                     case 'datetime':
                         if (!strtotime($this->$a)) {
                             $highErr = static::MMOBJ_ERROR;
-                            $this->diagLog(static::MMOBJ_ERROR, 104, array( '#text' => 'The field %fieldName must be a timestamp.',
-                                                    '%fieldName' => $a));
+                            $this->diagLog(static::MMOBJ_ERROR, 104, [ '#text' => 'The field %fieldName must be a timestamp.',
+                                                    '%fieldName' => $a]);
                         }
                         break;
                     default:

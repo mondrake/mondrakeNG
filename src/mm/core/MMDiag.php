@@ -8,8 +8,8 @@ namespace mondrakeNG\mm\core;
 class MMDiag
 {
 
-    private static $msgs = array();
-    private $timers = array();
+    private static $msgs = [];
+    private $timers = [];
 
 
     public function sLog($severity, $className, $id, $params)
@@ -49,14 +49,14 @@ class MMDiag
     {
         $tmp = self::$msgs;
         if ($cleanUp) {
-            self::$msgs = array();
+            self::$msgs = [];
         }
         return $tmp;
     }
 
     public function wipe($minSeverity = 0)
     {
-        $c = array();
+        $c = [];
         foreach (self::$msgs as $a => $msg) {
             if ($msg->severity > $minSeverity) {
                 $c[] = $msg;

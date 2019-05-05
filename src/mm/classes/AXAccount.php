@@ -15,23 +15,23 @@ class AXAccount extends MMObj
     public function defineChildObjs()
     {
         if (!isset(self::$childObjs[$this->className])) {
-            self::$childObjs[$this->className] = array(
-                'accountCtl' => array (
+            self::$childObjs[$this->className] = [
+                'accountCtl' => [
                     'className'         =>  MM_CLASS_PATH . 'AXAccountCtl',
                     'cardinality'       =>  'one',
-                    'parameters'        =>  array( 'account_id', ),
+                    'parameters'        =>  [ 'account_id', ],
                     'loading'           =>  'onRead',
                     'onDeleteCascade'   =>  true,
                     'onCreateCallback'  =>  'accountCtlInit',
-                ),
-                'accountClass' => array (
+                ],
+                'accountClass' => [
                     'className'         =>  MM_CLASS_PATH . 'AMAccountClass',
                     'cardinality'       =>  'one',
                     'whereClause'       =>  'account_class_id = #0#',
-                    'parameters'        =>  array( 'account_class_id', ),
+                    'parameters'        =>  [ 'account_class_id', ],
                     'loading'           =>  'onRead',
-                ),
-            );
+                ],
+            ];
         }
     }
 
@@ -44,7 +44,7 @@ class AXAccount extends MMObj
 
     private function _getPeriodTypes()
     {
-        $ret = array();
+        $ret = [];
         $pt = new \stdClass;
         $pt->periodTypeId = $this->env->period_type_id;
         $pt->futurePeriods = 2;
@@ -67,7 +67,7 @@ class AXAccount extends MMObj
         if (!$pt) {
             $pts = $this->pts;
         } else {
-            $pts = array($pt);
+            $pts = [$pt];
         }
 
         $dtStart = null;
@@ -77,8 +77,8 @@ class AXAccount extends MMObj
             $dateStart = new AMPeriodDate($pt->periodTypeId, $dtFrom);
             $r = $dateStart->read();
             if (!$r) {
-                $this->diagLog(MMObj::MMOBJ_ERROR, 99, array( '#text' => 'Date %fromDate not found in calendar.',
-                                '%fromDate' => $dtFrom,));
+                $this->diagLog(MMObj::MMOBJ_ERROR, 99, [ '#text' => 'Date %fromDate not found in calendar.',
+                                '%fromDate' => $dtFrom,]);
                 return null;
             }
             if (!$dtStart or $dtStart > $dateStart->datePeriod->first_period_date) {
@@ -89,8 +89,8 @@ class AXAccount extends MMObj
             $dateEnd = new AMPeriodDate($pt->periodTypeId, $dtTo);
             $r = $dateEnd->read();
             if (!$r) {
-                $this->diagLog(MMObj::MMOBJ_ERROR, 99, array( '#text' => 'Date %toDate not found in calendar.',
-                                '%toDate' => $dtTo,));
+                $this->diagLog(MMObj::MMOBJ_ERROR, 99, [ '#text' => 'Date %toDate not found in calendar.',
+                                '%toDate' => $dtTo,]);
                 return null;
             }
             $dtTemp = $dateEnd->datePeriod->getOffsetPeriod($pt->futurePeriods)->last_period_date;
@@ -99,7 +99,7 @@ class AXAccount extends MMObj
             }
         }
         //$this->diagLog(MMObj::MMOBJ_DEBUG, 99, array( '#text' => "$dtStart - $dtEnd",));
-        return array($dtStart, $dtEnd);
+        return [$dtStart, $dtEnd];
     }
 
     private function _getDaySummaryTable($dtFrom, &$dtTo, &$isComplete, $debugMode = false)
@@ -111,11 +111,11 @@ class AXAccount extends MMObj
         $docItemType = new AMDocItemType;
 
         // gets query handle to the day summary table
-        $params = array(
+        $params = [
             "#dtFrom#" => $dtStart,
             "#dtTo#" => $dtEnd,
             "#account_id#" => $this->account_id,
-        );
+        ];
         $sqlId = "accountItems";
         $sqlStmt = MMUtils::retrieveSqlStatement($sqlId, $params);
         $qh = self::$dbol->getQueryHandle($sqlStmt, $sqlId);
@@ -218,7 +218,7 @@ class AXAccount extends MMObj
             $dtNeedle = $this->valid_to;
         }
         if (!$dtNeedle) {
-            $this->diagLog(MMObj::MMOBJ_ERROR, 99, array( '#text' => 'Needle date is null.',));
+            $this->diagLog(MMObj::MMOBJ_ERROR, 99, [ '#text' => 'Needle date is null.',]);
             return null;
         }
         // initialise class variables
@@ -235,11 +235,11 @@ class AXAccount extends MMObj
             list($dtStart, $dtEnd) = $this->_resolveStartEndDates($dtFrom, $dtNeedle, $pt);
 
             // gets date list query handle
-            $params = array(
+            $params = [
                 "#dtFrom#" => $dtStart,
                 "#dtTo#" => $dtEnd,
                 "#periodTypeId#" => $pt->periodTypeId,
-            );
+            ];
             $sqlId = "listDates";
             $sqlStmt = MMUtils::retrieveSqlStatement($sqlId, $params);
             $qh = self::$dbol->getQueryHandle($sqlStmt, $sqlId);
@@ -258,8 +258,8 @@ class AXAccount extends MMObj
                 $dateStart = new AMPeriodDate($pt->periodTypeId, $dtFrom);
                 $r = $dateStart->read();
                 if (!$r) {
-                    $this->diagLog(MMObj::MMOBJ_ERROR, 99, array( '#text' => 'Date %fromDate not found in AMPeriodDates.',
-                                    '%fromDate' => $dtFrom,));
+                    $this->diagLog(MMObj::MMOBJ_ERROR, 99, [ '#text' => 'Date %fromDate not found in AMPeriodDates.',
+                                    '%fromDate' => $dtFrom,]);
                     return null;
                 }
                 $prevPer = $dateStart->datePeriod->getOffsetPeriod(-1);
@@ -379,10 +379,10 @@ class AXAccount extends MMObj
         }
 
         if ($isAccBalUpdated) {
-            $this->diagLog(MMObj::MMOBJ_NOTICE, 99, array( '#text' => 'Account balance updated - %accountShort (%accountDesc)',
+            $this->diagLog(MMObj::MMOBJ_NOTICE, 99, [ '#text' => 'Account balance updated - %accountShort (%accountDesc)',
                             '%accountShort' => $this->account_short,
                             '%accountDesc' => $this->account_desc,
-                            '#elapsed' => 1));
+                            '#elapsed' => 1]);
         }
         return null;
     }
@@ -440,23 +440,23 @@ _END;
         if ($r) {
             $s = $db->update();
             if ($s) {
-                $this->diagLog(MMObj::MMOBJ_DEBUG, 99, array( '#text' => 'Daily Upd %accountShort - %accountDesc; %periodTypeId|%accountId|%day.',
+                $this->diagLog(MMObj::MMOBJ_DEBUG, 99, [ '#text' => 'Daily Upd %accountShort - %accountDesc; %periodTypeId|%accountId|%day.',
                                     '%accountShort' => $this->account_short,
                                     '%accountDesc' => $this->account_desc,
                                     '%periodTypeId' => $px->periodTypeId,
                                     '%accountId' => $this->account_id,
-                                    '%day' => $dx->date,));
+                                    '%day' => $dx->date,]);
                 return true;
             }
         } else {
             $s = $db->create();
             if ($s) {
-                $this->diagLog(MMObj::MMOBJ_DEBUG, 99, array( '#text' => 'Daily Ins %accountShort - %accountDesc; %periodTypeId|%accountId|%day.',
+                $this->diagLog(MMObj::MMOBJ_DEBUG, 99, [ '#text' => 'Daily Ins %accountShort - %accountDesc; %periodTypeId|%accountId|%day.',
                                     '%accountShort' => $this->account_short,
                                     '%accountDesc' => $this->account_desc,
                                     '%periodTypeId' => $px->periodTypeId,
                                     '%accountId' => $this->account_id,
-                                    '%day' => $dx->date,));
+                                    '%day' => $dx->date,]);
                 return true;
             }
         }
@@ -503,25 +503,25 @@ _END;
         if ($r) {
             $s = $pb->update();
             if ($s) {
-                $this->diagLog(MMObj::MMOBJ_DEBUG, 99, array( '#text' => 'Period Upd %accountShort - %accountDesc; %periodTypeId|%accountId|%year|%period.',
+                $this->diagLog(MMObj::MMOBJ_DEBUG, 99, [ '#text' => 'Period Upd %accountShort - %accountDesc; %periodTypeId|%accountId|%year|%period.',
                                     '%accountShort' => $this->account_short,
                                     '%accountDesc' => $this->account_desc,
                                     '%periodTypeId' => $px->periodTypeId,
                                     '%accountId' => $this->account_id,
                                     '%year' => $px->periodYear,
-                                    '%period' => $px->period,));
+                                    '%period' => $px->period,]);
                 return true;
             }
         } else {
             $s = $pb->create();
             if ($s) {
-                $this->diagLog(MMObj::MMOBJ_DEBUG, 99, array( '#text' => 'Period Ins %accountShort - %accountDesc; %periodTypeId|%accountId|%year|%period.',
+                $this->diagLog(MMObj::MMOBJ_DEBUG, 99, [ '#text' => 'Period Ins %accountShort - %accountDesc; %periodTypeId|%accountId|%year|%period.',
                                     '%accountShort' => $this->account_short,
                                     '%accountDesc' => $this->account_desc,
                                     '%periodTypeId' => $px->periodTypeId,
                                     '%accountId' => $this->account_id,
                                     '%year' => $px->periodYear,
-                                    '%period' => $px->period,));
+                                    '%period' => $px->period,]);
                 return true;
             }
         }

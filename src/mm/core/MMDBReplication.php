@@ -169,12 +169,12 @@ class MMDBReplication
         $currUpdateId = $this->dbol->currID('seq_update_id');
 
         // sql statement
-        $params = array(
+        $params = [
             "#idFrom#" => $lastUpdateId,
             "#idTo#" => $currUpdateId,
             "#clientTypeId#" => $clientType,
             "#environmentId#" => $environment,
-        );
+        ];
         $sqlq = MMUtils::retrieveSqlStatement("getReplicationChunk", $params);
         $qh = $this->dbol->getQueryHandle($sqlq);
 
@@ -266,7 +266,7 @@ class MMDBReplication
         }
 
         // initialises chunk
-        $chunk = array( 'r' => array(), 'd' => array() );
+        $chunk = [ 'r' => [], 'd' => [] ];
 
         // first traversal: traverses tree left->right for I/U ops
         $trav = new RbppavlTraverser($tree);
@@ -276,9 +276,9 @@ class MMDBReplication
             $cl = new MMClass;
             $cl->getClassFromTableName($table);
 
-            $replTable = array();
-            $replRow= array();
-            $replOp = array();
+            $replTable = [];
+            $replRow= [];
+            $replOp = [];
             $ctr = 0;
             while ($re != null) {
                 if ($re->table != $table) {
@@ -302,7 +302,7 @@ class MMDBReplication
                         $replOp['clientPK'] = $clientPk;
                     }
                     // loops the columns
-                    $replOp['cols'] = array();
+                    $replOp['cols'] = [];
                     foreach ($src->getColumnProperties() as $c => $d) {
                         $replOp['cols'][$c] = $res->$c;
                     }
@@ -322,9 +322,9 @@ class MMDBReplication
         $re = $trav->last();
         $table = $re->table;
         while ($table != null) {
-            $replTable= array();
-            $replRow= array();
-            $replOp = array();
+            $replTable= [];
+            $replRow= [];
+            $replOp = [];
             $ctr = 0;
             while ($re != null) {
                 if ($re->table != $table) {
@@ -385,9 +385,9 @@ class MMDBReplication
             $inCycle = true;
             while ($inCycle) {
                 // initialises chunk
-                $chunk = array( 'r' => array() );
-                $replTable = array();
-                $replRow= array();
+                $chunk = [ 'r' => [] ];
+                $replTable = [];
+                $replRow= [];
                 $ctr = 0;
                 while ($r = $this->dbol->fetchRow($qh)) {
                     $src = new $cl->mm_class_name;
@@ -395,11 +395,11 @@ class MMDBReplication
                         $src->$a = $b;
                     }
                     $src->primaryKeyString = $this->dbol->compactPKIntoString($src, $src->getDbObj());
-                    $replOp = array();
+                    $replOp = [];
                     $replOp['op'] = 'I';
                     $replOp['masterPK'] = $src->primaryKeyString;
                     // loops the columns
-                    $replOp['cols'] = array();
+                    $replOp['cols'] = [];
                     foreach ($src->getColumnProperties() as $c => $d) {
                         $replOp['cols'][$c] = $src->$c;
                     }

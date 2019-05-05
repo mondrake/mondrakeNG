@@ -50,7 +50,7 @@ class MMUserLogin extends MMObj
 
             if ($res) {
                 if ($this->mm_trust_token_expiration < $gmnow) {
-                    $user->setSessionContext(array(     'user' => 3, ));
+                    $user->setSessionContext([     'user' => 3, ]);
                     $this->delete();
                     $authParms['authResult'] = 10;
                     $authParms['authMsg'][] = 'Validation token expired.';
@@ -94,7 +94,7 @@ class MMUserLogin extends MMObj
 
         if ($isValidated) {
             if ($user->is_login_enabled == 0) {          // checks user loggable
-                $user->setSessionContext(array(     'user' => 3, ));
+                $user->setSessionContext([     'user' => 3, ]);
                 $this->delete();
                 $authParms['authResult'] = 1;
                 $authParms['authMsg'][] = 'Invalid credentials (01).';
@@ -115,9 +115,9 @@ class MMUserLogin extends MMObj
                 $this->client_id = $authParms['mmClient'];
 
                 // set user session context
-                $user->setSessionContext(array(     'user' => $this->user_id,
+                $user->setSessionContext([     'user' => $this->user_id,
                                                     'environment' => $this->environment_id,
-                                                    'client' => $this->client_id,));
+                                                    'client' => $this->client_id,]);
 
                 // creates/updates MMUserLogin record
                 if ($this->dbAction == 'create') {
@@ -192,7 +192,7 @@ class MMUserLogin extends MMObj
 
         if ($isValidated) {
             if ($mmUser->is_login_enabled == 0) {            // checks user loggable
-                $mmUser->setSessionContext(array(   'user' => 3, ));
+                $mmUser->setSessionContext([   'user' => 3, ]);
                 $this->delete();
                 $authParms['authResult'] = 1;
                 $authParms['authMsg'][] = 'User disabled.';
@@ -216,9 +216,9 @@ class MMUserLogin extends MMObj
                 $authParms['mmClient'] = $this->client_id;
 
                 // set user session context
-                $mmUser->setSessionContext(array(   'user' => $this->user_id,
+                $mmUser->setSessionContext([   'user' => $this->user_id,
                                                     'environment' => $this->environment_id,
-                                                    'client' => $this->client_id,));
+                                                    'client' => $this->client_id,]);
 
                 // creates/updates MMUserLogin record
                 if ($this->dbAction == 'create') {

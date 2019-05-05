@@ -35,7 +35,7 @@ class Dbol
     const DBOL_DEFAULT_PKSEPARATOR = '|';
     const DBOL_DEFAULT_PKSEPARATORREPLACE = '#&!vbar!&#';
 
-    protected $_variables = array();          // session context variables
+    protected $_variables = [];          // session context variables
     protected $_cbc = null;                        // callback interface instance
     protected $dbConnection = null;
 
@@ -99,8 +99,8 @@ class Dbol
     {
         $this->diag(
             104,
-            array('%method' => $name,                    // undefined method called
-                 '%class' =>     get_class($this),)
+            ['%method' => $name,                    // undefined method called
+                 '%class' =>     get_class($this),]
         );
     }
 
@@ -132,7 +132,7 @@ class Dbol
     {
       // arguments validation
         if (!is_array($params)) {
-            $this->diag(100, array('%variable' => '$params',));        // variable must be array
+            $this->diag(100, ['%variable' => '$params',]);        // variable must be array
         }
       // processes each param rather then overriding them all
         if (!empty($params)) {
@@ -172,7 +172,7 @@ class Dbol
     {
       // arguments validation
         if (!is_array($cols)) {
-            $this->diag(100, array('%variable' => '$cols',));        // variable must be array
+            $this->diag(100, ['%variable' => '$cols',]);        // variable must be array
         }
 
         if (!empty($cols)) {
@@ -198,12 +198,12 @@ class Dbol
     {
       // arguments validation
         if (!is_array($cols)) {
-            $this->diag(100, array('%variable' => '$cols',));        // variable must be array
+            $this->diag(100, ['%variable' => '$cols',]);        // variable must be array
         }
 
         if (!empty($cols)) {
             $this->setColumnProperty($dbolE, $cols, 'primaryKey', true);
-            $dbolE->PKColumns = array();
+            $dbolE->PKColumns = [];
             foreach ($cols as $col) {
                 $dbolE->PKColumns[] = $col;
             }
@@ -346,9 +346,9 @@ class Dbol
         if (count($res) > 1) {
             $this->diag(
                 101,
-                array( '%table' => $dbolE->table,        // more than 1 record
+                [ '%table' => $dbolE->table,        // more than 1 record
                       '%class' => get_class($obj),
-                      '%whereClause' => $whereClause,)
+                      '%whereClause' => $whereClause,]
             );
         }
         return $res[0];
@@ -374,7 +374,7 @@ class Dbol
             return null;
         }
       // cycles returnset and creates objects in an array
-        $rows = array();
+        $rows = [];
         foreach ($res as $row) {
           // associates row columns to object attributes
             foreach ($row as $a => $b) {
@@ -404,7 +404,7 @@ class Dbol
     public function count($obj, $dbolE, $whereClause = null)
     {
       // executes query
-        $res = $this->_executeRead($dbolE->table, array('count(*) as rowcount'), $whereClause);
+        $res = $this->_executeRead($dbolE->table, ['count(*) as rowcount'], $whereClause);
         if (empty($res)) {
             return null;
         }
@@ -483,7 +483,7 @@ class Dbol
             $startTime = $this->_cbc->startPerfTiming();
         }
         $qh = $this->getQueryHandle($sqlq, $sqlId, $limit, $offset, true);
-        $rows = array();
+        $rows = [];
         while ($row = $this->fetchRow($qh)) {
             $rows[] = $row;
         }
@@ -494,10 +494,10 @@ class Dbol
                 $sqlId = $sqlId ? $sqlId : 'select';
                 $this->diag(
                     10,
-                    array('%sqlId' => $sqlId,                    // executed SQL over perf threshold
+                    ['%sqlId' => $sqlId,                    // executed SQL over perf threshold
                       '%sqlStmt' => $sqlq,
                       '%rowCount' => count($rows),
-                      '%elapsed' => $elapsed,)
+                      '%elapsed' => $elapsed,]
                 );
                 $this->_cbc->logSQLPerformance($sqlId, $sqlq, $startTime, $stopTime, $elapsed, count($rows));
             }
@@ -539,10 +539,10 @@ class Dbol
                 $sqlId = $sqlId ? $sqlId : 'select';
                 $this->diag(
                     10,
-                    array('%sqlId' => $sqlId,                    // executed SQL over perf threshold
+                    ['%sqlId' => $sqlId,                    // executed SQL over perf threshold
                       '%sqlStmt' => $sqlq,
                       '%rowCount' => 'na',
-                      '%elapsed' => $elapsed,)
+                      '%elapsed' => $elapsed,]
                 );
                 $this->_cbc->logSQLPerformance($sqlId, $sqlq, $startTime, $stopTime, $elapsed, null);
             }
@@ -585,10 +585,10 @@ class Dbol
             if ($perfData['elapsed'] > $this->_variables['perfThreshold']) {
                 $this->diag(
                     10,
-                    array(  '%sqlId' => $sqlId ? $sqlId : 'execute',    // executed SQL over perf threshold
+                    [  '%sqlId' => $sqlId ? $sqlId : 'execute',    // executed SQL over perf threshold
                         '%sqlStmt' => $sqlq,
                         '%rowCount' => $res->rowCount(),
-                        '%elapsed' => $perfData['elapsed'],)
+                        '%elapsed' => $perfData['elapsed'],]
                 );
                 $this->_cbc->logSQLPerformance($sqlId, $sqlq, $perfData['startTime'], $perfData['stopTime'], $perfData['elapsed'], $res->rowCount());
             }
@@ -612,9 +612,9 @@ class Dbol
         if (is_array($obj)) {
             $this->diag(
                 102,
-                array('%method' => __FUNCTION__,                    // variable can not be array
+                ['%method' => __FUNCTION__,                    // variable can not be array
                    '%class' =>     get_class($obj[0]),
-                   '%table' => $dbolE->table,)
+                   '%table' => $dbolE->table,]
             );
         }
 
@@ -637,7 +637,7 @@ class Dbol
         }
 
       // convert obj to array of values according to table column structure
-        $values = array();
+        $values = [];
         foreach ($dbolE->columns as $c => $d) {
             $values[] = isset($obj->$d) ? $obj->$d : null;
         }
@@ -672,10 +672,10 @@ class Dbol
                 $sqlq = $qb->getSQL();
                 $this->diag(
                     10,
-                    array(  '%sqlId' => $sqlId,        // executed SQL over perf threshold
+                    [  '%sqlId' => $sqlId,        // executed SQL over perf threshold
                       '%sqlStmt' => $sqlq,
                       '%rowCount' => $res,
-                      '%elapsed' => $perfData['elapsed'],)
+                      '%elapsed' => $perfData['elapsed'],]
                 );
             }
         }
@@ -730,26 +730,26 @@ class Dbol
         if (is_array($obj)) {
             $this->diag(
                 102,
-                array('%method' => __FUNCTION__,                    // variable can not be array
+                ['%method' => __FUNCTION__,                    // variable can not be array
                    '%class' =>     get_class($obj[0]),
-                   '%table' => $dbolE->table,)
+                   '%table' => $dbolE->table,]
             );
         }
 
         if (!isset($obj->primaryKeyString)) {
             $this->diag(
                 103,
-                array('%method' => __FUNCTION__,                    // missing primaryKeyString
+                ['%method' => __FUNCTION__,                    // missing primaryKeyString
                    '%class' =>     get_class($obj),
-                   '%table' => $dbolE->table,)
+                   '%table' => $dbolE->table,]
             );
         }
 
       // is db update needed?
       // checks against in-object copy of the original record;
       // if no changes, returns 0, otherwise continues
-        $values = array();
-        $changes = array();
+        $values = [];
+        $changes = [];
         $dbUpdate = false;
         $primaryKeyChange = false;
         $dbUpdate = $this->_checkRecordChanges($dbolE, $obj, $obj->prevDbImage, $values, $changes, $primaryKeyChange);
@@ -795,10 +795,10 @@ class Dbol
             if (empty($currentDbImage)) {
                 $this->diag(
                     11,
-                    array('%method' => __FUNCTION__,        // Requested update on record no longer existing
+                    ['%method' => __FUNCTION__,        // Requested update on record no longer existing
                      '%class' =>     get_class($obj),
                      '%table' => $dbolE->table,
-                     '%primaryKeyString' => $originalPKstring,)
+                     '%primaryKeyString' => $originalPKstring,]
                 );
                 return(0);
             }
@@ -808,15 +808,15 @@ class Dbol
             if ($this->_cbc->getDbImageUpdateSequence($currentDbImage) != $this->_cbc->getDbImageUpdateSequence($obj->prevDbImage)) {
                 $this->diag(
                     12,
-                    array('%method' => __FUNCTION__,        // Requested update on record no longer existing
+                    ['%method' => __FUNCTION__,        // Requested update on record no longer existing
                      '%class' =>     get_class($obj),
                      '%table' => $dbolE->table,
                      '%primaryKeyString' => $originalPKstring,
                      '%currDbImageSeq' => $this->_cbc->getDbImageUpdateSequence($currentDbImage),
-                     '%prevDbImageSeq' => $this->_cbc->getDbImageUpdateSequence($obj->prevDbImage),)
+                     '%prevDbImageSeq' => $this->_cbc->getDbImageUpdateSequence($obj->prevDbImage),]
                 );
-                $values = array();
-                $changes = array();
+                $values = [];
+                $changes = [];
                 $dbUpdate = false;
                 $primaryKeyChange = false;
                 $dbUpdate = $this->_checkRecordChanges($dbolE, $obj, $currentDbImage, $values, $changes, $primaryKeyChange);
@@ -836,8 +836,8 @@ class Dbol
             }
             $this->_cbc->setAuditPreUpdate($obj, $dbolE, $primaryKeyChange);
           // re-check for changes occurred in callback
-            $values = array();
-            $changes = array();
+            $values = [];
+            $changes = [];
             $dbUpdate = false;
             $primaryKeyChange = false;
             $dbUpdate = $this->_checkRecordChanges($dbolE, $obj, $obj->prevDbImage, $values, $changes, $primaryKeyChange);
@@ -866,10 +866,10 @@ class Dbol
                 $sqlq = $qb->getSQL();
                 $this->diag(
                     10,
-                    array(  '%sqlId' => $sqlId,        // executed SQL over perf threshold
+                    [  '%sqlId' => $sqlId,        // executed SQL over perf threshold
                       '%sqlStmt' => $sqlq,
                       '%rowCount' => $res,
-                      '%elapsed' => $perfData['elapsed'],)
+                      '%elapsed' => $perfData['elapsed'],]
                 );
                 if ($dbolE->tableProperties['performanceTracking']) {
                       $this->_cbc->logSQLPerformance($sqlId, $sqlq, $perfData['startTime'], $perfData['stopTime'], $perfData['elapsed'], $res);
@@ -960,12 +960,12 @@ class Dbol
                     if ($dbolE->columnTypes[$d] == 'text') {
                         if (extension_loaded('xdiff')) {
                             $diff = xdiff_string_diff($c1, $c2, 0);
-                            $changesItem = array ($d, $diff, null, 1);
+                            $changesItem = [$d, $diff, null, 1];
                         } else {
-                            $changesItem = array ($d, $c2, $c1, 0);
+                            $changesItem = [$d, $c2, $c1, 0];
                         }
                     } else {
-                        $changesItem = array ($d, $c2, $c1, 0);
+                        $changesItem = [$d, $c2, $c1, 0];
                     }
                     $changes[] = $changesItem;
                 }
@@ -991,18 +991,18 @@ class Dbol
         if (is_array($obj)) {
             $this->diag(
                 102,
-                array('%method' => __FUNCTION__,                    // variable can not be array
+                ['%method' => __FUNCTION__,                    // variable can not be array
                    '%class' =>     get_class($obj[0]),
-                   '%table' => $dbolE->table,)
+                   '%table' => $dbolE->table,]
             );
         }
 
         if (!isset($obj->primaryKeyString)) {
             $this->diag(
                 103,
-                array('%method' => __FUNCTION__,                    // missing primaryKeyString
+                ['%method' => __FUNCTION__,                    // missing primaryKeyString
                    '%class' =>     get_class($obj),
-                   '%table' => $dbolE->table,)
+                   '%table' => $dbolE->table,]
             );
         }
 
@@ -1256,20 +1256,20 @@ class Dbol
             return static::DBOL_NOTICE;
         }
         if (!isset($diagnosticMessages)) {
-            $diagnosticMessages = array(
-            10       => array(static::DBOL_DEBUG, '%sqlId exceeded performance threshold (mSec=%elapsed, count=%rowCount)'),
-            11       => array(static::DBOL_INFO,  'Requested update on record no longer existing. Class: %class, Table: %table, PK: %primaryKeyString'),
-            12       => array(static::DBOL_INFO,  'Detected concurrent update. Class: %class, Table: %table, PK: %primaryKeyString, Sequence at read: %prevDbImageSeq, Sequence at update: %currDbImageSeq'),
-            100      => array(static::DBOL_ERROR, 'Variable %variable must be an array'),
-            101      => array(static::DBOL_ERROR, 'readSingle returned more than 1 record. Class: %class, Table: %table, Where: %whereClause'),
-            102      => array(static::DBOL_ERROR, '%method method does not support array of records as input. Class: %class, Table: %table'),
-            103      => array(static::DBOL_ERROR, '%method requested on object missing primaryKeyString attribute. Class: %class, Table: %table'),
-            104      => array(static::DBOL_ERROR, 'Undefined method %class::%method called'),
-            105      => array(static::DBOL_ERROR, "Database system for driver '%driver' not supported"),
-            106      => array(static::DBOL_ERROR, "Native datatype '%type' not supported"),
-            107      => array(static::DBOL_ERROR, "Query result row limitation not supported for %dbms"),
-            108      => array(static::DBOL_ERROR, 'Database handle not initialised.'),
-            );
+            $diagnosticMessages = [
+            10       => [static::DBOL_DEBUG, '%sqlId exceeded performance threshold (mSec=%elapsed, count=%rowCount)'],
+            11       => [static::DBOL_INFO,  'Requested update on record no longer existing. Class: %class, Table: %table, PK: %primaryKeyString'],
+            12       => [static::DBOL_INFO,  'Detected concurrent update. Class: %class, Table: %table, PK: %primaryKeyString, Sequence at read: %prevDbImageSeq, Sequence at update: %currDbImageSeq'],
+            100      => [static::DBOL_ERROR, 'Variable %variable must be an array'],
+            101      => [static::DBOL_ERROR, 'readSingle returned more than 1 record. Class: %class, Table: %table, Where: %whereClause'],
+            102      => [static::DBOL_ERROR, '%method method does not support array of records as input. Class: %class, Table: %table'],
+            103      => [static::DBOL_ERROR, '%method requested on object missing primaryKeyString attribute. Class: %class, Table: %table'],
+            104      => [static::DBOL_ERROR, 'Undefined method %class::%method called'],
+            105      => [static::DBOL_ERROR, "Database system for driver '%driver' not supported"],
+            106      => [static::DBOL_ERROR, "Native datatype '%type' not supported"],
+            107      => [static::DBOL_ERROR, "Query result row limitation not supported for %dbms"],
+            108      => [static::DBOL_ERROR, 'Database handle not initialised.'],
+            ];
         }
         if (is_null($id)) {
             return $diagnosticMessages;

@@ -26,7 +26,7 @@ class Mysql
    */
     public function listTables($res, $prefix = null)
     {
-        $tables = array();
+        $tables = [];
         foreach ($res as $a => $b) {
             $comment = $b['Comment'];
             $offs = strpos($comment, 'InnoDB free');
@@ -34,7 +34,7 @@ class Mysql
                 $comment = substr($comment, 0, $offs);
                 $comment = substr($comment, 0, strrpos($comment, ';'));
             }
-            $entry = array();
+            $entry = [];
             $entry['description'] = $comment;
             $entry['rows'] = $b['Rows'];
             $entry['storageMethod'] = $b['Engine'];

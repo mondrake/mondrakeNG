@@ -15,5 +15,5 @@ class MMDiagMsg
     var $time;
     var $uTime;
     var $elapsed;
-    var $params = array();
+    var $params = [];
 }

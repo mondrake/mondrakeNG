@@ -14,10 +14,10 @@ namespace mondrakeNG\dbol;
 class DbolEntry
 {
     var $table;
-    var $tableProperties = array();
-    var $columns = array();
-    var $columnTypes = array();
-    var $PKColumns = array();
-    var $AIColumns = array();
-    var $columnProperties = array();
+    var $tableProperties = [];
+    var $columns = [];
+    var $columnTypes = [];
+    var $PKColumns = [];
+    var $AIColumns = [];
+    var $columnProperties = [];
 }

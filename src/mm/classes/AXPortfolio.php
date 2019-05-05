@@ -12,24 +12,24 @@ class AXPortfolio extends MMObj
     public function defineChildObjs()
     {
         if (!isset(self::$childObjs[$this->className])) {
-            self::$childObjs[$this->className] = array(
-                'portfolioCtl' => array (
+            self::$childObjs[$this->className] = [
+                'portfolioCtl' => [
                     'className'         =>  MM_CLASS_PATH . 'AXPortfolioCtl',
                     'cardinality'       =>  'one',
-                    'parameters'        =>  array( 'portfolio_id', ),
+                    'parameters'        =>  [ 'portfolio_id', ],
                     'loading'           =>  'onRead',
                     'onDeleteCascade'   =>  true,
                     'onCreateCallback'  =>  'portfolioCtlInit',
-                ),
-                'portfolioItems' => array (
+                ],
+                'portfolioItems' => [
                     'className'         =>  MM_CLASS_PATH . 'AXPortfolioItem',
                     'cardinality'       =>  'zeroMany',
                     'whereClause'       =>  'portfolio_id = #0#',
-                    'parameters'        =>  array( 'portfolio_id', ),
+                    'parameters'        =>  [ 'portfolio_id', ],
                     'loading'           =>  'onDemand',
                     'onDeleteCascade'   =>  true,
-                ),
-            );
+                ],
+            ];
         }
     }
 
@@ -50,7 +50,7 @@ class AXPortfolio extends MMObj
         $docItemType = new AMDocItemType;
 
         $timer = new MMTimer;
-        $this->msgs = array();
+        $this->msgs = [];
 
         $timer->start();
 
@@ -85,11 +85,11 @@ class AXPortfolio extends MMObj
 //throw new \Exception(print_r($a, true));
 
             // initialises update matrix
-            $params = array(
+            $params = [
                 "#dtTo#" => $a->doc_item_date,
                 "#item_id#" => $a->portfolio_item_id,
                 "#portfolio_id#" => $a->portfolio_id
-            );
+            ];
             if ($docItemType->isCredit($a->doc_item_type)) {
                 $sqlId = "PFIDayVal";
             } else {
@@ -99,15 +99,15 @@ class AXPortfolio extends MMObj
             $updMx = MMObj::query($sqlq, null, null, $sqlId);
 
             $dPortaf = 0;
-            $eVals = array();
+            $eVals = [];
             foreach ($updMx as $mov) {
                 $dPortaf += $mov[val];
-                $valEntry = array();
+                $valEntry = [];
                 $valEntry[date] = $mov[doc_item_date01];
                 $valEntry[value] = $mov[val];
                 $eVals[] = $valEntry;
             }
-            $valEntry = array();
+            $valEntry = [];
             $valEntry[date] = $a->doc_item_date;
             if ($docItemType->isCredit($a->doc_item_type)) {
                 $valEntry[value] = -$a->doc_item_account_currency_amount;

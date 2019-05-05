@@ -1,7 +1,7 @@
 <?php
 final class ipinfodb
 {
-    protected $errors = array();
+    protected $errors = [];
     protected $showTimezone = false;
     protected $service = 'api.ipinfodb.com';
     protected $version = 'v2';

@@ -11,22 +11,22 @@ class MMEnvironment extends MMObj
     public function defineChildObjs()
     {
         if (!isset(self::$childObjs[$this->className])) {
-            self::$childObjs[$this->className] = array(
-                'currPeriod' => array (
+            self::$childObjs[$this->className] = [
+                'currPeriod' => [
                     'className'          =>    MM_CLASS_PATH . 'AMPeriod',
                     'cardinality'          =>    'one',
                     'whereClause'        =>  "period_type_id = #1# and first_period_date <= '#0#' and last_period_date >= '#0#'",
-                    'parameters'        =>  array( 'day_watermark', 'period_type_id', ),
+                    'parameters'        =>  [ 'day_watermark', 'period_type_id', ],
                     'loading'            =>    'onRead',
-                ),
-                'accounts' => array (
+                ],
+                'accounts' => [
                     'className'          =>    MM_CLASS_PATH . 'AXAccount',
                     'cardinality'          =>    'zeroMany',
                     'whereClause'        =>  'environment_id = #0#',
-                    'parameters'        =>  array( 'environment_id', ),
+                    'parameters'        =>  [ 'environment_id', ],
                     'loading'            =>    'onDemand',
-                ),
-            );
+                ],
+            ];
         }
     }
 
@@ -34,7 +34,7 @@ class MMEnvironment extends MMObj
     {
         $this->loadChildObjs($this, 'accounts');
         // sort accounts
-        usort($this->accounts, array($this, "cmpAcc"));
+        usort($this->accounts, [$this, "cmpAcc"]);
     }
 
     public function loadAccountStats()
@@ -81,10 +81,10 @@ class MMEnvironment extends MMObj
 
         // loads accounts to be refreshed
         $this->startWatch(1);
-        $params = array(
+        $params = [
             "#newDate#" => $newDate,
             "#environmentId#" => $this->environment_id,
-        );
+        ];
         if ($hasPeriodChanged) {
             $sqlId = "envAccountListForRefreshPerCh";
         } else {
@@ -93,17 +93,17 @@ class MMEnvironment extends MMObj
         $sqlq = MMUtils::retrieveSqlStatement($sqlId, $params);
         $updMx = MMObj::query($sqlq, null, null, $sqlId);
         if (!empty($updMx)) {
-            $this->accounts = array();
+            $this->accounts = [];
             foreach ($updMx as $row) {
                 $acc = new AXAccount;
                 $acc->read($row['account_id']);
                 $this->accounts[] = $acc;
             }
-            $this->diagLog(MMObj::MMOBJ_DEBUG, 99, array( '#text' => 'Accounts loaded.',
-                                            '#elapsed' => 1));
+            $this->diagLog(MMObj::MMOBJ_DEBUG, 99, [ '#text' => 'Accounts loaded.',
+                                            '#elapsed' => 1]);
         } else {
-            $this->diagLog(MMObj::MMOBJ_DEBUG, 99, array( '#text' => 'No accounts to process.',
-                                            '#elapsed' => 1));
+            $this->diagLog(MMObj::MMOBJ_DEBUG, 99, [ '#text' => 'No accounts to process.',
+                                            '#elapsed' => 1]);
             return null;
         }
 
@@ -124,11 +124,11 @@ class MMEnvironment extends MMObj
                 $acc->updateBalance($this, $oldDate, $newDate, 2, $debugMode);
                 //print("<table><tr><td>heartbeat $acc->account_id ($acc->account_short - $acc->account_desc) " . MMUtils::timestamp() . "</td></tr></table>");
                 set_time_limit(30);
-                $this->diagLog(MMObj::MMOBJ_DEBUG, 99, array( '#text' => 'Account %accountId (%accountShort - %accountDesc) processed.',
+                $this->diagLog(MMObj::MMOBJ_DEBUG, 99, [ '#text' => 'Account %accountId (%accountShort - %accountDesc) processed.',
                                     '%accountId' => $acc->account_id,
                                     '%accountShort' => $acc->account_short,
                                     '%accountDesc' => $acc->account_desc,
-                                    '#elapsed' => 2));
+                                    '#elapsed' => 2]);
 
                 // sets new watermark date
                 $acc->accountCtl->day_watermark = $newDate;
@@ -151,7 +151,7 @@ class MMEnvironment extends MMObj
         }
 
         // final diag log
-        $this->diagLog(MMObj::MMOBJ_DEBUG, 99, array( '#text' => 'Update balances complete.',
-                                        '#elapsed' => 0));
+        $this->diagLog(MMObj::MMOBJ_DEBUG, 99, [ '#text' => 'Update balances complete.',
+                                        '#elapsed' => 0]);
     }
 }

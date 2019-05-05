@@ -109,7 +109,7 @@ class DbConnection
             $dbolE->columns[] = $column_name;
             $dbolE->columnTypes[$column_name] = $column_data->getType()->getName();
 
-            $colDets = array();
+            $colDets = [];
           // set seq property
             $colDets['seq'] = $j;
           // set type property

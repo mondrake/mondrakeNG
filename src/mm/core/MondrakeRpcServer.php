@@ -169,8 +169,8 @@ class MondrakeRpcServer
         $srvRunTime->start();
         self::sessionValidate();
         try {
-            $payloadResponse = array();
-            $downloadResponse = array();
+            $payloadResponse = [];
+            $downloadResponse = [];
 
           // last update id confirmed by client
             $client = new MMClient;
@@ -230,8 +230,8 @@ class MondrakeRpcServer
             $env->updateBalances();
 
             $dbRepl = new MMDBReplication(self::$gObj->getdbol());
-            $payloadResponse = array();
-            $replChunk = array();
+            $payloadResponse = [];
+            $replChunk = [];
             $isComplete = false;
 
           // last update id confirmed by client
@@ -270,8 +270,8 @@ class MondrakeRpcServer
 
         try {
             $dbRepl = new MMDBReplication(self::$gObj->getdbol());
-            $payloadResponse = array();
-            $replChunk = array();
+            $payloadResponse = [];
+            $replChunk = [];
             $isComplete = false;
 
           // last update id confirmed by client
@@ -315,10 +315,10 @@ class MondrakeRpcServer
         try {
           // uploads docs
             $stat = MMObj::MMOBJ_DEBUG;
-            $uploadResponse = array();
+            $uploadResponse = [];
             foreach ($arr as $cmd) {
                 $validationReturn = self::validateDocArrayFromClient($cmd['doc']);
-                $cmdResponse = array();
+                $cmdResponse = [];
                 $cmdResponse['syncCommand'] = $cmd['syncCommand'];
                 $cmdResponse['syncResponse'] = MMObj::MMOBJ_ERROR;
                 if ($validationReturn) {
@@ -409,18 +409,18 @@ class MondrakeRpcServer
         try {
           // process pk sync
             self::$gObj->beginTransaction();
-            $pkSyncResponse = array();
+            $pkSyncResponse = [];
             foreach ($arr as $tab => $det) {
                 $cl = new MMClass;
                 $cl->getClassFromTableName($tab);
                 require_once $cl->mm_class_name . '.php';
-                $tabResponse = array();
+                $tabResponse = [];
                 foreach ($det as $cmd) {
                     // process input
                     $DbRepl = new MMDBReplication(self::$gObj->getdbol());
                     $DbRepl->setPKMap($tab, $cmd['master_pk'], $cmd['client_pk'], true);
                     // output
-                    $syncResponse = array();
+                    $syncResponse = [];
                     $syncResponse['master_pk'] = $cmd['master_pk'];
                     $syncResponse['client_pk'] = $cmd['client_pk'];
                     $obj = new $cl->mm_class_name;
@@ -452,17 +452,17 @@ class MondrakeRpcServer
         $srvRunTime->start();
         self::sessionValidate();
         try {
-            $uploadResponse = array();
+            $uploadResponse = [];
             foreach ($arr as $upTable) {
                 $cl = new MMClass;
                 $cl->getClassFromTableName($upTable['tableName']);
       //throw new \XML_RPC2_FaultException($cl->mm_class_name . '.php', 0);
         //      require_once $cl->mm_class_name . '.php';
-                $tableRowUploadResponse= array();
+                $tableRowUploadResponse= [];
                 foreach ($upTable['rows'] as $ctr => $row) {
                     $tableRowCmd = $row['syncCommand'];
                     $tableRowCols = $row['cols'];
-                    $cmdResponse = array();
+                    $cmdResponse = [];
 
                     $src = new $cl->mm_class_name;
                     $src->loadFromArray($tableRowCols);
@@ -593,9 +593,9 @@ class MondrakeRpcServer
             }
             $user = new MMUSer;
             $user->read(self::$gObj->user_id);
-            $user->setSessionContext(array(   'user' => self::$gObj->user_id,
+            $user->setSessionContext([   'user' => self::$gObj->user_id,
                         'environment' => self::$gObj->environment_id,
-                        'client' => self::$gObj->client_id,));
+                        'client' => self::$gObj->client_id,]);
     //      self::$gObj->setSessionContext(self::$gObj->user_id, self::$gObj->environment_id, self::$gObj->client_id);
         } else {
             throw new \Exception("Session non authenticated");
@@ -649,9 +649,9 @@ class MondrakeRpcServer
     // format response
     private static function formatResponse($methodInvoked, $methoodResponseStatus, $methodResponseMsgs, $methodResponsePayload, $runTime, $repeatTot = null, $repeatCurr = null)
     {
-        $resp = array();
+        $resp = [];
 
-        $r = array();
+        $r = [];
         $r['method'] = $methodInvoked;
         $r['status'] = $methoodResponseStatus;
         $r['messages'] = $methodResponseMsgs;

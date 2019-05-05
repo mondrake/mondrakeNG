@@ -26,7 +26,7 @@ class MMObjDbolCallback implements DbolCallbackInterface
 
     public function getDbEmulatedSequenceQualifiers($sequence)
     {
-        return array($sequence . '_seq', 'sequence');
+        return [$sequence . '_seq', 'sequence'];
     }
 
     public function getDbResolvedStatement($sqlStatement)

@@ -12,7 +12,7 @@ class AXDocItem extends MMObj
     {
         parent::__construct();
         self::setColumnProperty(
-            array ('validation_ts'),
+            ['validation_ts'],
             'editable',
             false
         );
@@ -77,13 +77,13 @@ class AXDocItem extends MMObj
         $acc->read($this->account_id);
         if ($this->doc_item_date < $acc->valid_from or (!empty($acc->valid_to) and $this->doc_item_date > $acc->valid_to)) {
             $highErr = 4;
-            $this->diagLog(4, 1000, array( '#text' => 'Document item date outside account validity period. Doc: %docId, Item date: %docItemDate, Account: %accountShort %accountDesc',
+            $this->diagLog(4, 1000, [ '#text' => 'Document item date outside account validity period. Doc: %docId, Item date: %docItemDate, Account: %accountShort %accountDesc',
                                     '%docId' => $this->doc_id,
                                     '%docItemDate' => $this->doc_item_date,
                                     '%accountShort' => $acc->account_short,
                                     '%accountDesc' => $acc->account_desc,
                                     '%fieldName' => 'doc_item_date',
-                                    ));
+                                    ]);
         }
 
         // item validation timestamp
@@ -140,10 +140,10 @@ class AXDocItem extends MMObj
 
     public function getFirstFutureItemDate($accountId, $dateFrom)
     {
-        $params = array(
+        $params = [
             "#date#" => $dateFrom,
             "#accountId#" => $accountId,
-        );
+        ];
         $sqlq = MMUtils::retrieveSqlStatement("docItemNextFutureDate", $params);
         $updMx = MMObj::query($sqlq);
         if (count($updMx) == 1) {

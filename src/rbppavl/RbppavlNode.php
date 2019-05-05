@@ -43,7 +43,7 @@ class RbppavlNode extends Rbppavl
      *
      * @type array
      */
-    public $link = array( null, null );
+    public $link = [ null, null ];
 
     /**
      * Pointer to the node's parent node

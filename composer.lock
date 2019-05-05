@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "06e68ad6c90846a7b9cd465634c97acb",
+    "content-hash": "c2b1f94f13a30a8e5ea571990943777b",
     "packages": [
         {
             "name": "doctrine/cache",
@@ -1126,12 +1126,58 @@
             "description": "Symfony Stopwatch Component",
             "homepage": "https://symfony.com",
             "time": "2019-01-16T20:31:39+00:00"
+        },
+        {
+            "name": "thomasbachem/php-short-array-syntax-converter",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/a-vasyliev/php-short-array-syntax-converter.git",
+                "reference": "59fde6c9a45543a39f2ce4787c5c1d83c9f50899"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/a-vasyliev/php-short-array-syntax-converter/zipball/59fde6c9a45543a39f2ce4787c5c1d83c9f50899",
+                "reference": "59fde6c9a45543a39f2ce4787c5c1d83c9f50899",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4"
+            },
+            "bin": [
+                "bin/array-converter"
+            ],
+            "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Thomas Bachem",
+                    "email": "mail@thomasbachem.com",
+                    "homepage": "http://thomasbachem.com"
+                },
+                {
+                    "name": "Andrii Vasyliev",
+                    "email": "contact@andrey-vasiliev.com",
+                    "homepage": "http://andrey-vasiliev.com"
+                }
+            ],
+            "description": "Command-line script to convert PHP's array() syntax to PHP 5.4's short array syntax [] using PHP's built-in tokenizer.",
+            "homepage": "https://github.com/a-vasyliev/php-short-array-syntax-converter",
+            "keywords": [
+                "array",
+                "converter",
+                "php",
+                "short"
+            ],
+            "time": "2014-10-31T13:57:10+00:00"
         }
     ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "thomasbachem/php-short-array-syntax-converter": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],

@@ -12,7 +12,7 @@ class MMClient extends MMObj
     {
         parent::__construct();
         self::setColumnProperty(
-            array ('client_token'),
+            ['client_token'],
             'editable',
             false
         );
@@ -21,16 +21,16 @@ class MMClient extends MMObj
     public function defineChildObjs()
     {
         if (!isset(self::$childObjs[$this->className])) {
-            self::$childObjs[$this->className] = array(
-                'clientCtl' => array (
+            self::$childObjs[$this->className] = [
+                'clientCtl' => [
                     'className'         =>  MM_CLASS_PATH . 'MMClientCtl',
                     'cardinality'       =>  'one',
-                    'parameters'        =>  array( 'client_id', ),
+                    'parameters'        =>  [ 'client_id', ],
                     'loading'           =>  'onRead',
                     'onDeleteCascade'   =>  true,
                     'onCreateCallback'  =>  'clientCtlInit',
-                ),
-            );
+                ],
+            ];
         }
     }
 

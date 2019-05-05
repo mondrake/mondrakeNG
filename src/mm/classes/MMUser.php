@@ -12,7 +12,7 @@ class MMUser extends MMObj
     {
         parent::__construct();
         self::setColumnProperty(
-            array ('user_token'),
+            ['user_token'],
             'editable',
             false
         );

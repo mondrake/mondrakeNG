@@ -9,7 +9,7 @@ class AXAccountDailyBalance extends MMObj
 
     public function setPKColumns()
     {
-        $PKColumns = array("environment_id", "balance_type", "account_id", "period_type_id", "period_date");
+        $PKColumns = ["environment_id", "balance_type", "account_id", "period_type_id", "period_date"];
         return self::$dbol->setPKColumns(self::$dbObj[$this->className], $PKColumns);
     }
 }
