@@ -379,15 +379,15 @@ abstract class MMObj
 
         $this->primaryKeyString = $this->compactPKIntoString();
 
-        // pk replacement - NOTE: [master_pk] array element must be morphologically aligned with primary
+        // pk replacement - NOTE: ['master_pk'] array element must be morphologically aligned with primary
         // key structure on server BEFORE it reaches here
         if ($clientPKReplace) {
             $this->client_pk = $this->primaryKeyString;
-            $attrs = explode('|', $arr[master_pk]);
+            $attrs = explode('|', $arr['master_pk']);
             foreach ($this->getDbObj()->PKColumns as $ctr => $col) {
                 $this->$col = empty($attrs[$ctr]) ? null : $attrs[$ctr];
             }
-            $this->primaryKeyString = $arr[master_pk];
+            $this->primaryKeyString = $arr['master_pk'];
         }
 
         return;
