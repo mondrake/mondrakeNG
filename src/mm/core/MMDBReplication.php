@@ -51,7 +51,7 @@ class MMDBReplication
     {
         $sessionContext = $this->dbol->getVariable();
         $masterPKMap = new MMDbReplicaPKMap;
-        $masterPKMap->client_id = $sessionContext[client];
+        $masterPKMap->client_id = $sessionContext['client'];
         $masterPKMap->db_table = $dbTable;
         $masterPKMap->db_master_pk = $masterPK;
         $masterPKMapPK = $masterPKMap->compactPKIntoString();
@@ -266,7 +266,10 @@ class MMDBReplication
         }
 
         // initialises chunk
-        $chunk = [ 'r' => [], 'd' => [] ];
+        $chunk = [
+            'r' => [],
+            'd' => [],
+        ];
 
         // first traversal: traverses tree left->right for I/U ops
         $trav = new RbppavlTraverser($tree);
