@@ -127,8 +127,7 @@ class Response
             $result = "<methodResponse>\n";
         }
         if ($this->errno) {
-            // G. Giunta 2005/2/13: let non-ASCII response messages be tolerated by clients
-            // by xml-encoding non ascii chars
+            // Let non-ASCII response messages be tolerated by clients by xml-encoding non ascii chars
             $result .= "<fault>\n" .
                 "<value>\n<struct><member><name>faultCode</name>\n<value><int>" . $this->errno .
                 "</int></value>\n</member>\n<member>\n<name>faultString</name>\n<value><string>" .
@@ -142,7 +141,7 @@ class Response
                         "</param>\n</params>";
                 } else {
                     /// @todo try to build something serializable?
-                    throw new \Exception('cannot serialize xmlrpc response objects whose content is native php values');
+                    throw new \Exception(var_export([$this->val, $this->valtyp], true) . ' cannot serialize xmlrpc response objects whose content is native php values');
                 }
             } else {
                 $result .= "<params>\n<param>\n" .

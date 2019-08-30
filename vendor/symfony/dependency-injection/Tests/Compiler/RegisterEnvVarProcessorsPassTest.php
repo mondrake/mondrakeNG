@@ -39,8 +39,13 @@ class RegisterEnvVarProcessorsPassTest extends TestCase
             'int' => ['int'],
             'json' => ['array'],
             'key' => ['bool', 'int', 'float', 'string', 'array'],
+            'url' => ['array'],
+            'query_string' => ['array'],
             'resolve' => ['string'],
+            'default' => ['bool', 'int', 'float', 'string', 'array'],
             'string' => ['string'],
+            'trim' => ['string'],
+            'require' => ['bool', 'int', 'float', 'string', 'array'],
         ];
 
         $this->assertSame($expected, $container->getParameterBag()->getProvidedTypes());
@@ -55,12 +60,10 @@ class RegisterEnvVarProcessorsPassTest extends TestCase
         $this->assertFalse($container->has('container.env_var_processors_locator'));
     }
 
-    /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\InvalidArgumentException
-     * @expectedExceptionMessage Invalid type "foo" returned by "Symfony\Component\DependencyInjection\Tests\Compiler\BadProcessor::getProvidedTypes()", expected one of "array", "bool", "float", "int", "string".
-     */
     public function testBadProcessor()
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\InvalidArgumentException');
+        $this->expectExceptionMessage('Invalid type "foo" returned by "Symfony\Component\DependencyInjection\Tests\Compiler\BadProcessor::getProvidedTypes()", expected one of "array", "bool", "float", "int", "string".');
         $container = new ContainerBuilder();
         $container->register('foo', BadProcessor::class)->addTag('container.env_var_processor');
 

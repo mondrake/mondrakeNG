@@ -98,12 +98,12 @@ class EnvVarProcessorTest extends TestCase
     }
 
     /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
-     * @expectedExceptionMessage Non-numeric env var
      * @dataProvider invalidInts
      */
     public function testGetEnvIntInvalid($value)
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\RuntimeException');
+        $this->expectExceptionMessage('Non-numeric env var');
         $processor = new EnvVarProcessor(new Container());
 
         $processor->getEnv('int', 'foo', function ($name) use ($value) {
@@ -148,12 +148,12 @@ class EnvVarProcessorTest extends TestCase
     }
 
     /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
-     * @expectedExceptionMessage Non-numeric env var
      * @dataProvider invalidFloats
      */
     public function testGetEnvFloatInvalid($value)
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\RuntimeException');
+        $this->expectExceptionMessage('Non-numeric env var');
         $processor = new EnvVarProcessor(new Container());
 
         $processor->getEnv('float', 'foo', function ($name) use ($value) {
@@ -197,12 +197,12 @@ class EnvVarProcessorTest extends TestCase
     }
 
     /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
-     * @expectedExceptionMessage undefined constant
      * @dataProvider invalidConsts
      */
     public function testGetEnvConstInvalid($value)
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\RuntimeException');
+        $this->expectExceptionMessage('undefined constant');
         $processor = new EnvVarProcessor(new Container());
 
         $processor->getEnv('const', 'foo', function ($name) use ($value) {
@@ -233,6 +233,19 @@ class EnvVarProcessorTest extends TestCase
         $this->assertSame('hello', $result);
     }
 
+    public function testGetEnvTrim()
+    {
+        $processor = new EnvVarProcessor(new Container());
+
+        $result = $processor->getEnv('trim', 'foo', function ($name) {
+            $this->assertSame('foo', $name);
+
+            return " hello\n";
+        });
+
+        $this->assertSame('hello', $result);
+    }
+
     /**
      * @dataProvider validJson
      */
@@ -258,12 +271,10 @@ class EnvVarProcessorTest extends TestCase
         ];
     }
 
-    /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
-     * @expectedExceptionMessage Syntax error
-     */
     public function testGetEnvInvalidJson()
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\RuntimeException');
+        $this->expectExceptionMessage('Syntax error');
         $processor = new EnvVarProcessor(new Container());
 
         $processor->getEnv('json', 'foo', function ($name) {
@@ -274,12 +285,12 @@ class EnvVarProcessorTest extends TestCase
     }
 
     /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
-     * @expectedExceptionMessage Invalid JSON env var
      * @dataProvider otherJsonValues
      */
     public function testGetEnvJsonOther($value)
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\RuntimeException');
+        $this->expectExceptionMessage('Invalid JSON env var');
         $processor = new EnvVarProcessor(new Container());
 
         $processor->getEnv('json', 'foo', function ($name) use ($value) {
@@ -300,12 +311,10 @@ class EnvVarProcessorTest extends TestCase
         ];
     }
 
-    /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
-     * @expectedExceptionMessage Unsupported env var prefix
-     */
     public function testGetEnvUnknown()
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\RuntimeException');
+        $this->expectExceptionMessage('Unsupported env var prefix');
         $processor = new EnvVarProcessor(new Container());
 
         $processor->getEnv('unknown', 'foo', function ($name) {
@@ -315,12 +324,10 @@ class EnvVarProcessorTest extends TestCase
         });
     }
 
-    /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
-     * @expectedExceptionMessage Invalid configuration: env var "key:foo" does not contain a key specifier.
-     */
     public function testGetEnvKeyInvalidKey()
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\RuntimeException');
+        $this->expectExceptionMessage('Invalid env "key:foo": a key specifier should be provided.');
         $processor = new EnvVarProcessor(new Container());
 
         $processor->getEnv('key', 'foo', function ($name) {
@@ -329,12 +336,12 @@ class EnvVarProcessorTest extends TestCase
     }
 
     /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
-     * @expectedExceptionMessage Resolved value of "foo" did not result in an array value.
      * @dataProvider noArrayValues
      */
     public function testGetEnvKeyNoArrayResult($value)
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\RuntimeException');
+        $this->expectExceptionMessage('Resolved value of "foo" did not result in an array value.');
         $processor = new EnvVarProcessor(new Container());
 
         $processor->getEnv('key', 'index:foo', function ($name) use ($value) {
@@ -355,12 +362,12 @@ class EnvVarProcessorTest extends TestCase
     }
 
     /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
-     * @expectedExceptionMessage Key "index" not found in
      * @dataProvider invalidArrayValues
      */
     public function testGetEnvKeyArrayKeyNotFound($value)
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\EnvNotFoundException');
+        $this->expectExceptionMessage('Key "index" not found in');
         $processor = new EnvVarProcessor(new Container());
 
         $processor->getEnv('key', 'index:foo', function ($name) use ($value) {
@@ -419,5 +426,56 @@ class EnvVarProcessorTest extends TestCase
                 'index' => 'password',
             ];
         }));
+    }
+
+    /**
+     * @dataProvider validNullables
+     */
+    public function testGetEnvNullable($value, $processed)
+    {
+        $processor = new EnvVarProcessor(new Container());
+        $result = $processor->getEnv('default', ':foo', function ($name) use ($value) {
+            $this->assertSame('foo', $name);
+
+            return $value;
+        });
+        $this->assertSame($processed, $result);
+    }
+
+    public function validNullables()
+    {
+        return [
+            ['hello', 'hello'],
+            ['', null],
+            ['null', 'null'],
+            ['Null', 'Null'],
+            ['NULL', 'NULL'],
+         ];
+    }
+
+    public function testRequireMissingFile()
+    {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\EnvNotFoundException');
+        $this->expectExceptionMessage('missing-file');
+        $processor = new EnvVarProcessor(new Container());
+
+        $processor->getEnv('require', '/missing-file', function ($name) {
+            return $name;
+        });
+    }
+
+    public function testRequireFile()
+    {
+        $path = __DIR__.'/Fixtures/php/return_foo_string.php';
+
+        $processor = new EnvVarProcessor(new Container());
+
+        $result = $processor->getEnv('require', $path, function ($name) use ($path) {
+            $this->assertSame($path, $name);
+
+            return $path;
+        });
+
+        $this->assertEquals('foo', $result);
     }
 }

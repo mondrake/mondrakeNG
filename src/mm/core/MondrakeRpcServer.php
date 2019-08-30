@@ -546,19 +546,19 @@ class MondrakeRpcServer
             } else {
                 $itm['is_doc_item_validated'] = 0;
             }
-            if ($itm['reco_yr'] == 0) {
+            if (!isset($itm['reco_yr']) || $itm['reco_yr'] == 0) {
                 $itm['reco_yr'] = null;
             }
-            if ($itm['reco_nbr'] == 0) {
+            if (!isset($itm['reco_nbr']) || $itm['reco_nbr'] == 0) {
                 $itm['reco_nbr'] = null;
             }
-            if ($itm['reco_doc_id'] == 0) {
+            if (!isset($itm['reco_doc_id']) || $itm['reco_doc_id'] == 0) {
                 $itm['reco_doc_id'] = null;
             }
-            if ($itm['portfolio_id'] == 0) {
+            if (!isset($itm['portfolio_id']) || $itm['portfolio_id'] == 0) {
                 $itm['portfolio_id'] = null;
             }
-            if ($itm['portfolio_item_id'] == 0) {
+            if (!isset($itm['portfolio_item_id']) || $itm['portfolio_item_id'] == 0) {
                 $itm['portfolio_item_id'] = null;
             }
             if (!empty($itm['p_doc_item_id'])) {

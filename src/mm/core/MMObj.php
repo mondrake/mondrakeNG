@@ -370,6 +370,10 @@ abstract class MMObj
     {
         $cols = $this->getColumnProperties();
         foreach ($cols as $col => $props) {
+            if (!isset($arr[$col])) {
+                $this->$col = null;
+                continue;
+            }
             if (is_object($arr[$col]) and $arr[$col]->xmlrpc_type == 'datetime') {
                 $this->$col = gmdate('Y-m-d', $arr[$col]->timestamp);
             } else {

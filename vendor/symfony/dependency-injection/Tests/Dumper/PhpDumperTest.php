@@ -30,20 +30,24 @@ use Symfony\Component\DependencyInjection\Parameter;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\ServiceLocator;
+use Symfony\Component\DependencyInjection\Tests\Compiler\Foo;
+use Symfony\Component\DependencyInjection\Tests\Compiler\Wither;
 use Symfony\Component\DependencyInjection\Tests\Fixtures\CustomDefinition;
+use Symfony\Component\DependencyInjection\Tests\Fixtures\ScalarFactory;
 use Symfony\Component\DependencyInjection\Tests\Fixtures\StubbedTranslator;
 use Symfony\Component\DependencyInjection\Tests\Fixtures\TestServiceSubscriber;
 use Symfony\Component\DependencyInjection\TypedReference;
 use Symfony\Component\DependencyInjection\Variable;
 use Symfony\Component\ExpressionLanguage\Expression;
 
+require_once __DIR__.'/../Fixtures/includes/autowiring_classes.php';
 require_once __DIR__.'/../Fixtures/includes/classes.php';
 
 class PhpDumperTest extends TestCase
 {
     protected static $fixturesPath;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$fixturesPath = realpath(__DIR__.'/../Fixtures/');
     }
@@ -150,10 +154,10 @@ class PhpDumperTest extends TestCase
 
     /**
      * @dataProvider provideInvalidParameters
-     * @expectedException \InvalidArgumentException
      */
     public function testExportParameters($parameters)
     {
+        $this->expectException('InvalidArgumentException');
         $container = new ContainerBuilder(new ParameterBag($parameters));
         $container->compile();
         $dumper = new PhpDumper($container);
@@ -178,12 +182,10 @@ class PhpDumperTest extends TestCase
         $this->assertStringEqualsFile(self::$fixturesPath.'/php/services8.php', $dumper->dump(), '->dump() dumps parameters');
     }
 
-    /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\LogicException
-     * @expectedExceptionMessage Cannot dump an uncompiled container.
-     */
     public function testAddServiceWithoutCompilation()
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\LogicException');
+        $this->expectExceptionMessage('Cannot dump an uncompiled container.');
         $container = include self::$fixturesPath.'/containers/container9.php';
         new PhpDumper($container);
     }
@@ -262,7 +264,7 @@ class PhpDumperTest extends TestCase
         $class = 'Symfony_DI_PhpDumper_Test_Unsupported_Characters';
         $container = new ContainerBuilder();
         $container->setParameter("'", 'oh-no');
-        $container->register("foo*/oh-no", 'FooClass')->setPublic(true);
+        $container->register('foo*/oh-no', 'FooClass')->setPublic(true);
         $container->register('bar$', 'FooClass')->setPublic(true);
         $container->register('bar$!', 'FooClass')->setPublic(true);
         $container->compile();
@@ -310,11 +312,11 @@ class PhpDumperTest extends TestCase
 
     /**
      * @dataProvider provideInvalidFactories
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
-     * @expectedExceptionMessage Cannot dump definition
      */
     public function testInvalidFactories($factory)
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\RuntimeException');
+        $this->expectExceptionMessage('Cannot dump definition');
         $container = new ContainerBuilder();
         $def = new Definition('stdClass');
         $def->setPublic(true);
@@ -349,6 +351,24 @@ class PhpDumperTest extends TestCase
         $this->assertSame($foo, $container->get('alias_for_alias'));
     }
 
+    /**
+     * @group legacy
+     * @expectedDeprecation The "alias_for_foo_deprecated" service alias is deprecated. You should stop using it, as it will be removed in the future.
+     */
+    public function testAliasesDeprecation()
+    {
+        $container = include self::$fixturesPath.'/containers/container_alias_deprecation.php';
+        $container->compile();
+        $dumper = new PhpDumper($container);
+
+        $this->assertStringEqualsFile(self::$fixturesPath.'/php/container_alias_deprecation.php', $dumper->dump(['class' => 'Symfony_DI_PhpDumper_Test_Aliases_Deprecation']));
+
+        require self::$fixturesPath.'/php/container_alias_deprecation.php';
+        $container = new \Symfony_DI_PhpDumper_Test_Aliases_Deprecation();
+        $container->get('alias_for_foo_non_deprecated');
+        $container->get('alias_for_foo_deprecated');
+    }
+
     public function testFrozenContainerWithoutAliases()
     {
         $container = new ContainerBuilder();
@@ -361,12 +381,10 @@ class PhpDumperTest extends TestCase
         $this->assertFalse($container->has('foo'));
     }
 
-    /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\InvalidArgumentException
-     * @expectedExceptionMessage The "decorator_service" service is already initialized, you cannot replace it.
-     */
     public function testOverrideServiceWhenUsingADumpedContainer()
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\InvalidArgumentException');
+        $this->expectExceptionMessage('The "decorator_service" service is already initialized, you cannot replace it.');
         require_once self::$fixturesPath.'/php/services9_compiled.php';
 
         $container = new \ProjectServiceContainer();
@@ -463,6 +481,74 @@ class PhpDumperTest extends TestCase
         $this->assertSame(['foo', 'bar'], $container->getParameter('hello'));
     }
 
+    public function testDumpedDefaultEnvParameters()
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('fallback_param', 'baz');
+        $container->setParameter('fallback_env', '%env(foobar)%');
+        $container->setParameter('env(foobar)', 'foobaz');
+        $container->setParameter('env(foo)', '{"foo": "bar"}');
+        $container->setParameter('hello', '%env(default:fallback_param:bar)%');
+        $container->setParameter('hello-bar', '%env(default:fallback_env:key:baz:json:foo)%');
+        $container->compile();
+
+        $dumper = new PhpDumper($container);
+        $dumper->dump();
+
+        $this->assertStringEqualsFile(self::$fixturesPath.'/php/services_default_env.php', $dumper->dump(['class' => 'Symfony_DI_PhpDumper_Test_DefaultParameters']));
+
+        require self::$fixturesPath.'/php/services_default_env.php';
+        $container = new \Symfony_DI_PhpDumper_Test_DefaultParameters();
+        $this->assertSame('baz', $container->getParameter('hello'));
+        $this->assertSame('foobaz', $container->getParameter('hello-bar'));
+    }
+
+    public function testDumpedUrlEnvParameters()
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('env(foo)', 'postgres://user@localhost:5432/database?sslmode=disable');
+        $container->setParameter('hello', '%env(url:foo)%');
+        $container->compile();
+
+        $dumper = new PhpDumper($container);
+        $dumper->dump();
+
+        $this->assertStringEqualsFile(self::$fixturesPath.'/php/services_url_env.php', $dumper->dump(['class' => 'Symfony_DI_PhpDumper_Test_UrlParameters']));
+
+        require self::$fixturesPath.'/php/services_url_env.php';
+        $container = new \Symfony_DI_PhpDumper_Test_UrlParameters();
+        $this->assertSame([
+            'scheme' => 'postgres',
+            'host' => 'localhost',
+            'port' => 5432,
+            'user' => 'user',
+            'path' => 'database',
+            'query' => 'sslmode=disable',
+            'pass' => null,
+            'fragment' => null,
+        ], $container->getParameter('hello'));
+    }
+
+    public function testDumpedQueryEnvParameters()
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('env(foo)', 'foo=bar&baz[]=qux');
+        $container->setParameter('hello', '%env(query_string:foo)%');
+        $container->compile();
+
+        $dumper = new PhpDumper($container);
+        $dumper->dump();
+
+        $this->assertStringEqualsFile(self::$fixturesPath.'/php/services_query_string_env.php', $dumper->dump(['class' => 'Symfony_DI_PhpDumper_Test_QueryStringParameters']));
+
+        require self::$fixturesPath.'/php/services_query_string_env.php';
+        $container = new \Symfony_DI_PhpDumper_Test_QueryStringParameters();
+        $this->assertSame([
+            'foo' => 'bar',
+            'baz' => ['qux'],
+        ], $container->getParameter('hello'));
+    }
+
     public function testDumpedJsonEnvParameters()
     {
         $container = new ContainerBuilder();
@@ -512,12 +598,10 @@ class PhpDumperTest extends TestCase
         $this->assertStringEqualsFile(__FILE__, $container->getParameter('random'));
     }
 
-    /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\EnvParameterException
-     * @expectedExceptionMessage Environment variables "FOO" are never used. Please, check your container's configuration.
-     */
     public function testUnusedEnvParameter()
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\EnvParameterException');
+        $this->expectExceptionMessage('Environment variables "FOO" are never used. Please, check your container\'s configuration.');
         $container = new ContainerBuilder();
         $container->getParameter('env(FOO)');
         $container->compile();
@@ -525,12 +609,10 @@ class PhpDumperTest extends TestCase
         $dumper->dump();
     }
 
-    /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\ParameterCircularReferenceException
-     * @expectedExceptionMessage Circular reference detected for parameter "env(resolve:DUMMY_ENV_VAR)" ("env(resolve:DUMMY_ENV_VAR)" > "env(resolve:DUMMY_ENV_VAR)").
-     */
     public function testCircularDynamicEnv()
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\ParameterCircularReferenceException');
+        $this->expectExceptionMessage('Circular reference detected for parameter "env(resolve:DUMMY_ENV_VAR)" ("env(resolve:DUMMY_ENV_VAR)" > "env(resolve:DUMMY_ENV_VAR)").');
         $container = new ContainerBuilder();
         $container->setParameter('foo', '%bar%');
         $container->setParameter('bar', '%env(resolve:DUMMY_ENV_VAR)%');
@@ -610,12 +692,8 @@ class PhpDumperTest extends TestCase
         $dumper = new PhpDumper($container);
 
         $message = 'Circular reference detected for service "foo", path: "foo -> bar -> foo". Try running "composer require symfony/proxy-manager-bridge".';
-        if (method_exists($this, 'expectException')) {
-            $this->expectException(ServiceCircularReferenceException::class);
-            $this->expectExceptionMessage($message);
-        } else {
-            $this->setExpectedException(ServiceCircularReferenceException::class, $message);
-        }
+        $this->expectException(ServiceCircularReferenceException::class);
+        $this->expectExceptionMessage($message);
 
         $dumper->dump();
     }
@@ -906,6 +984,13 @@ class PhpDumperTest extends TestCase
         $this->assertEquals((object) ['bar6' => (object) []], $foo6);
 
         $this->assertInstanceOf(\stdClass::class, $container->get('root'));
+
+        $manager3 = $container->get('manager3');
+        $listener3 = $container->get('listener3');
+        $this->assertSame($manager3, $listener3->manager);
+
+        $listener4 = $container->get('listener4');
+        $this->assertInstanceOf('stdClass', $listener4);
     }
 
     public function provideAlmostCircular()
@@ -958,6 +1043,11 @@ class PhpDumperTest extends TestCase
         $this->assertStringEqualsFile(self::$fixturesPath.'/php/services_inline_self_ref.php', $dumper->dump(['class' => 'Symfony_DI_PhpDumper_Test_Inline_Self_Ref']));
     }
 
+    /**
+     * @group issue-32995
+     *
+     * @runInSeparateProcess https://github.com/symfony/symfony/issues/32995
+     */
     public function testHotPathOptimizations()
     {
         $container = include self::$fixturesPath.'/containers/container_inline_requires.php';
@@ -1051,7 +1141,7 @@ class PhpDumperTest extends TestCase
      * This test checks the trigger of a deprecation note and should not be removed in major releases.
      *
      * @group legacy
-     * @expectedDeprecation The "foo" service is deprecated. You should stop using it, as it will soon be removed.
+     * @expectedDeprecation The "foo" service is deprecated. You should stop using it, as it will be removed in the future.
      */
     public function testPrivateServiceTriggersDeprecation()
     {
@@ -1087,12 +1177,10 @@ class PhpDumperTest extends TestCase
         $this->assertSame('foo', $container->getParameter('BAR'));
     }
 
-    /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
-     * @expectedExceptionMessage Service "errored_definition" is broken.
-     */
     public function testErroredDefinition()
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\RuntimeException');
+        $this->expectExceptionMessage('Service "errored_definition" is broken.');
         $container = include self::$fixturesPath.'/containers/container9.php';
         $container->setParameter('foo_bar', 'foo_bar');
         $container->compile();
@@ -1135,6 +1223,71 @@ class PhpDumperTest extends TestCase
 
         $container->set('foo5', $foo5 = new \stdClass());
         $this->assertSame($foo5, $locator->get('foo5'));
+    }
+
+    public function testScalarService()
+    {
+        $container = new ContainerBuilder();
+        $container->register('foo', 'string')
+            ->setPublic(true)
+            ->setFactory([ScalarFactory::class, 'getSomeValue'])
+        ;
+
+        $container->compile();
+
+        $dumper = new PhpDumper($container);
+        eval('?>'.$dumper->dump(['class' => 'Symfony_DI_PhpDumper_Test_Scalar_Service']));
+
+        $container = new \Symfony_DI_PhpDumper_Test_Scalar_Service();
+
+        $this->assertTrue($container->has('foo'));
+        $this->assertSame('some value', $container->get('foo'));
+    }
+
+    public function testAliasCanBeFoundInTheDumpedContainerWhenBothTheAliasAndTheServiceArePublic()
+    {
+        $container = new ContainerBuilder();
+
+        $container->register('foo', 'stdClass')->setPublic(true);
+        $container->setAlias('bar', 'foo')->setPublic(true);
+
+        $container->compile();
+
+        // Bar is found in the compiled container
+        $service_ids = $container->getServiceIds();
+        $this->assertContains('bar', $service_ids);
+
+        $dumper = new PhpDumper($container);
+        $dump = $dumper->dump(['class' => 'Symfony_DI_PhpDumper_AliasesCanBeFoundInTheDumpedContainer']);
+        eval('?>'.$dump);
+
+        $container = new \Symfony_DI_PhpDumper_AliasesCanBeFoundInTheDumpedContainer();
+
+        // Bar should still be found in the compiled container
+        $service_ids = $container->getServiceIds();
+        $this->assertContains('bar', $service_ids);
+    }
+
+    public function testWither()
+    {
+        $container = new ContainerBuilder();
+        $container->register(Foo::class);
+
+        $container
+            ->register('wither', Wither::class)
+            ->setPublic(true)
+            ->setAutowired(true);
+
+        $container->compile();
+        $dumper = new PhpDumper($container);
+        $dump = $dumper->dump(['class' => 'Symfony_DI_PhpDumper_Service_Wither']);
+        $this->assertStringEqualsFile(self::$fixturesPath.'/php/services_wither.php', $dump);
+        eval('?>'.$dump);
+
+        $container = new \Symfony_DI_PhpDumper_Service_Wither();
+
+        $wither = $container->get('wither');
+        $this->assertInstanceOf(Foo::class, $wither->foo);
     }
 }
 

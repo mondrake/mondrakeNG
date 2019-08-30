@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\FrozenParameterBag;
  */
 class Symfony_DI_PhpDumper_Test_Rot13Parameters extends Container
 {
-    private $parameters;
+    private $parameters = [];
     private $targetDirs = [];
     private $getService;
 
@@ -72,6 +72,8 @@ class Symfony_DI_PhpDumper_Test_Rot13Parameters extends Container
     {
         return $this->services['container.env_var_processors_locator'] = new \Symfony\Component\DependencyInjection\Argument\ServiceLocator($this->getService, [
             'rot13' => ['services', 'Symfony\\Component\\DependencyInjection\\Tests\\Dumper\\Rot13EnvVarProcessor', 'getRot13EnvVarProcessorService', false],
+        ], [
+            'rot13' => '?',
         ]);
     }
 

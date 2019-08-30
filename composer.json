@@ -9,8 +9,7 @@
         "symfony/http-kernel": "^4",
         "symfony/stopwatch": "^4",
         "phpxmlrpc/phpxmlrpc": "^4.3",
-        "squizlabs/php_codesniffer": "^3.4",
-        "thomasbachem/php-short-array-syntax-converter": "dev-master"
+        "squizlabs/php_codesniffer": "^3.4"
     },
     "autoload": {
         "psr-4": {"mondrakeNG\\": "src/"}
