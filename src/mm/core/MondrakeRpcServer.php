@@ -385,9 +385,13 @@ class MondrakeRpcServer
             $trace = $e->getTrace();
             $backtrace = '';
             foreach ($trace as $n => $msg) {
-                $backtrace .= "\n{$msg['class']} {$msg['type']} {$msg['function']} {$msg['file']}:{$msg['line']}\n";
+                $class = empty($msg['class']) ? '' : $msg['class'];
+                $type = empty($msg['type']) ? '' : $msg['type'];
+                $function = empty($msg['function']) ? '' : $msg['function'];
+                $file = empty($msg['file']) ? '' : $msg['file'];
+                $line = empty($msg['line']) ? '' : $msg['line'];
+                $backtrace .= "\n{$class} {$type} {$function} {$file}:{$line}\n";
             }
-  //        throw new \XML_RPC2_FaultException($e->getMessage() . ' ' . $backtrace, $e->getCode());
             throw new \Exception($e->getMessage() . ' ' . $backtrace, $e->getCode());
         }
     }

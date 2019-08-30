@@ -49,8 +49,8 @@ class AXDoc extends MMObj
         parent::loadFromArray($arr, $clientPKReplace);
         // doc items
         $this->docItems = [];
-        if (count($arr[docItems] > 0)) {
-            foreach ($arr[docItems] as $itm) {
+        if (count($arr['docItems']) > 0) {
+            foreach ($arr['docItems'] as $itm) {
                 $docItem = new AXDocItem;
                 $docItem->loadFromArray($itm, $this->doc_id, $clientPKReplace);
                 $this->docItems[] = $docItem;
