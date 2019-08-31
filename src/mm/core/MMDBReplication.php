@@ -58,16 +58,16 @@ class MMDBReplication
         $ret = $masterPKMap->read($masterPKMapPK);
         if (is_null($ret)) {            // new map
             $masterPKMap->db_client_pk = $clientPK;
-            $masterPKMap->is_client_aligned = $clientAligned;
-            $masterPKMap->is_deleted_on_server = $serverDeleted;
+            $masterPKMap->is_client_aligned = $clientAligned ? 1 : 0;
+            $masterPKMap->is_deleted_on_server = $serverDeleted ? 1 : 0;
             $masterPKMap->create();
         } else {                        // update map
             if (!empty($masterPKMap->db_client_pk) and ($clientPK <> $masterPKMap->db_client_pk)) {
                 throw new \Exception("xReplication error - Table: $dbTable - Attempt to map client PK '$clientPK' to master PK '$masterPK' failed. Already mapped to client PK '$masterPKMap->db_client_pk'.");
             }
             $masterPKMap->db_client_pk = $clientPK;
-            $masterPKMap->is_client_aligned = $clientAligned;
-            $masterPKMap->is_deleted_on_server = $serverDeleted;
+            $masterPKMap->is_client_aligned = $clientAligned ? 1 : 0;
+            $masterPKMap->is_deleted_on_server = $serverDeleted ? 1 : 0;
             $masterPKMap->update();
         }
         return 0;
@@ -91,7 +91,7 @@ class MMDBReplication
         $ret = $masterPKMap->readMulti("db_table = '$dbTable' and db_master_pk = '$masterPK'");
         if (count($ret) > 0) {
             foreach ($ret as $map) {
-                $map->is_deleted_on_server = true;
+                $map->is_deleted_on_server = 1;
                 $map->update();
             }
         }
