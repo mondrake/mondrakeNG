@@ -459,8 +459,8 @@ abstract class MMObj
                         break;
                     case 'date':
                         // Trasforma in YYYY-MM-DD se il valore è in ISO8601.
-                        $d = \DateTime::createFromFormat(\DateTime::ISO8601, $this->$a);
-                        if ($d && $d->format(\DateTime::ISO8601) === $this->$a) {
+                        $d = \DateTime::createFromFormat("Ymd\TH:i:s", $this->$a);
+                        if ($d && $d->format("Ymd\TH:i:s") === $this->$a) {
                             $this->$a = $d->format('Y-m-d');
                         }
 

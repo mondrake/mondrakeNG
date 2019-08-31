@@ -392,6 +392,7 @@ class MondrakeRpcServer
                 $line = empty($msg['line']) ? '' : $msg['line'];
                 $backtrace .= "\n{$class} {$type} {$function} {$file}:{$line}\n";
             }
+error_log($e->getMessage() . ' ' . $backtrace);
             throw new \Exception($e->getMessage() . ' ' . $backtrace, $e->getCode());
         }
     }
