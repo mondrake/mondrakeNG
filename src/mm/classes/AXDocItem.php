@@ -56,8 +56,11 @@ class AXDocItem extends MMObj
         return $res;
     }
 
-    public function loadFromArray($arr, $docId, $clientPKReplace = false)
+    public function loadFromArray($arr, $docId = null, $clientPKReplace = false)
     {
+        if (is_null($doc_id)) {
+            throw new \RuntimeException('Missing docId in ::loadFromArray');
+        }
         parent::loadFromArray($arr, $clientPKReplace);
         $this->doc_id = $docId;
     }
