@@ -250,7 +250,7 @@ class MondrakeRpcServer
             foreach ($trace as $n => $msg) {
                 $backtrace .= "\n{$msg['class']} {$msg['type']} {$msg['function']} {$msg['file']}:{$msg['line']}\n";
             }
-            throw new \XML_RPC2_FaultException($e->getMessage() . ' ' . $backtrace, $e->getCode());
+            throw new \Exception($e->getMessage() . ' ' . $backtrace, $e->getCode());
         }
     }
 
