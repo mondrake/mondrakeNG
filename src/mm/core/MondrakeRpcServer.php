@@ -228,7 +228,6 @@ class MondrakeRpcServer
             $sessionContext = self::$gObj->getSessionContext();
             $env->read($sessionContext['environment']);
             $env->updateBalances();
-error_log(var_export($env, true));
 
             $dbRepl = new MMDBReplication(self::$gObj->getdbol());
             $payloadResponse = [];
@@ -240,8 +239,8 @@ error_log(var_export($env, true));
             $client->read($sessionContext['client']);
             $client->clientCtl->last_update_id = $cliLastUpdateId;
             $client->clientCtl->update();
-error_log(var_export($client->clientCtl, true));
             $ret = $dbRepl->getReplicationChunk($client->client_type_id, $environment, $replChunk, $cliLastUpdateId, $isComplete, $limit);
+error_log(var_export($ret, true));
             $payloadResponse['download'] = $replChunk;
             $payloadResponse['lastUpdateId'] = $cliLastUpdateId;
             $payloadResponse['isComplete'] = $isComplete;
