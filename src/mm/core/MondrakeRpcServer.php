@@ -240,7 +240,6 @@ class MondrakeRpcServer
             $client->clientCtl->last_update_id = $cliLastUpdateId;
             $client->clientCtl->update();
             $ret = $dbRepl->getReplicationChunk($client->client_type_id, $environment, $replChunk, $cliLastUpdateId, $isComplete, $limit);
-error_log(var_export($ret, true));
             $payloadResponse['download'] = $replChunk;
             $payloadResponse['lastUpdateId'] = $cliLastUpdateId;
             $payloadResponse['isComplete'] = $isComplete;
