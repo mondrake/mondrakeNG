@@ -284,7 +284,6 @@ class MMDBReplication
             $replOp = [];
             $ctr = 0;
             while ($re != null) {
-error_log(var_export($re, true));
                 if ($re->table != $table) {
                     break;
                 }
@@ -293,9 +292,7 @@ error_log(var_export($re, true));
                     continue;
                 }
                 $src = new $cl->mm_class_name;
-error_log(var_export($src, true));
                 $res = $src->read($re->primaryKey);
-error_log(var_export($res, true));
                 if ($res) {
                     $replOp['op'] = $re->operation;
                     $replOp['masterPK'] = $re->primaryKey;
