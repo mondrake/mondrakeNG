@@ -245,6 +245,7 @@ class MondrakeRpcServer
             $payloadResponse['isComplete'] = $isComplete;
             return new Response(self::formatResponse('download', MMObj::MMOBJ_OK, $diag->get(), $payloadResponse, $srvRunTime));
         } catch (\Exception $e) {
+error_log(var_export($e, true));
             $trace = $e->getTrace();
             $backtrace = '';
             foreach ($trace as $n => $msg) {
