@@ -243,6 +243,7 @@ class MondrakeRpcServer
             $payloadResponse['download'] = $replChunk;
             $payloadResponse['lastUpdateId'] = $cliLastUpdateId;
             $payloadResponse['isComplete'] = $isComplete;
+error_log(var_export($payloadResponse, true));
             return new Response(self::formatResponse('download', MMObj::MMOBJ_OK, $diag->get(), $payloadResponse, $srvRunTime));
         } catch (\Exception $e) {
             $trace = $e->getTrace();
