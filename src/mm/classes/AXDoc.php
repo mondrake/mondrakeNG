@@ -25,7 +25,7 @@ class AXDoc extends MMObj
 
     public function read($docId = null, $loadItems = true)
     {
-        if (is_null($doc_id)) {
+        if (is_null($docId)) {
             throw new \RuntimeException('Missing docId in ::read');
         }
         $res = parent::read($docId);
