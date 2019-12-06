@@ -284,6 +284,7 @@ class MMDBReplication
             $replOp = [];
             $ctr = 0;
             while ($re != null) {
+error_log(var_export($re, true));
                 if ($re->table != $table) {
                     break;
                 }
